@@ -11,7 +11,7 @@
     <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
+    <releaseNotes>Initial Release</releaseNotes>
     <copyright>Copyright 2016 Docker, Inc.</copyright>
     <tags>9P, Plan9</tags>
   </metadata>

@@ -5,7 +5,7 @@ using System.Security.Principal;
 using System.Text;
 using Sharp9P;
 
-namespace w9p
+namespace Example
 {
      /* A sample client for talking to Datakit. http:\\github.com\docker\datakit */
     internal class Program
