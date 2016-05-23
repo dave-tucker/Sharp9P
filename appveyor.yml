@@ -1,0 +1,21 @@
+version: 1.0.{build}
+build:
+  verbosity: minimal
+
+before_build:
+  - nuget restore
+
+build:
+  project: Sharp9P.sln
+
+cache:
+  - packages -> **\packages.config
+  
+configuration:
+  - Release
+  - Debug
+  
+platform: Any CPU
+
+artifacts:
+  - path: Sharp9P\bin\$(configuration)\Sharp9P.dll
