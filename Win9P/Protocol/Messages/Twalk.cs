@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Win9P.Exceptions;
 
 namespace Win9P.Protocol.Messages
@@ -13,8 +12,8 @@ namespace Win9P.Protocol.Messages
             NewFid = newFid;
             Nwname = nwname;
             Wname = wname;
-            Length += Constants.BIT32SZ + Constants.BIT32SZ +
-                      Constants.BIT16SZ;
+            Length += Constants.Bit32Sz + Constants.Bit32Sz +
+                      Constants.Bit16Sz;
             foreach (var name in wname)
             {
                 Length += Protocol.GetStringLength(name);
@@ -24,16 +23,16 @@ namespace Win9P.Protocol.Messages
         public Twalk(byte[] bytes) : base(bytes)
         {
             var offset = Constants.HeaderOffset;
-            Fid = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
-            NewFid = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
-            Nwname += Protocol.readUShort(bytes, offset);
-            offset += Constants.BIT16SZ;
+            Fid = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
+            NewFid = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
+            Nwname += Protocol.ReadUShort(bytes, offset);
+            offset += Constants.Bit16Sz;
             Wname = new string[Nwname];
             for (var i = 0; i < Nwname; i++)
             {
-                Wname[i] = Protocol.readString(bytes, offset);
+                Wname[i] = Protocol.ReadString(bytes, offset);
                 offset += (int) Protocol.GetStringLength(Wname[i]);
             }
             if (offset < Length)
@@ -50,14 +49,14 @@ namespace Win9P.Protocol.Messages
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
-            var offset = Protocol.writeUint(bytes, Length, 0);
+            var offset = Protocol.WriteUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
-            offset += Protocol.writeUshort(bytes, Tag, offset);
-            offset += Protocol.writeUint(bytes, Fid, offset);
-            offset += Protocol.writeUint(bytes, NewFid, offset);
-            offset += Protocol.writeUshort(bytes, Nwname, offset);
-            offset = Wname.Aggregate(offset, (current, name) => current + Protocol.writeString(bytes, name, current));
+            offset += Constants.Bit8Sz;
+            offset += Protocol.WriteUshort(bytes, Tag, offset);
+            offset += Protocol.WriteUint(bytes, Fid, offset);
+            offset += Protocol.WriteUint(bytes, NewFid, offset);
+            offset += Protocol.WriteUshort(bytes, Nwname, offset);
+            offset = Wname.Aggregate(offset, (current, name) => current + Protocol.WriteString(bytes, name, current));
             if (offset < Length)
             {
                 throw new InsufficientDataException(Length, offset);

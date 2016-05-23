@@ -1,5 +1,4 @@
-﻿using System;
-using Win9P.Exceptions;
+﻿using Win9P.Exceptions;
 
 namespace Win9P.Protocol.Messages
 {
@@ -9,17 +8,17 @@ namespace Win9P.Protocol.Messages
         {
             Type = (byte) MessageType.Rattach;
             Qid = qid;
-            Length += Constants.QIDSZ;
+            Length += Constants.Qidsz;
         }
 
         public Rattach(byte[] bytes) : base(bytes)
         {
             var offset = Constants.HeaderOffset;
-            Qid = Protocol.readQid(bytes, offset);
-            offset += Constants.QIDSZ;
+            Qid = Protocol.ReadQid(bytes, offset);
+            offset += Constants.Qidsz;
             if (offset < Length)
             {
-                throw new InsufficientDataException(Length,offset);
+                throw new InsufficientDataException(Length, offset);
             }
         }
 
@@ -28,12 +27,12 @@ namespace Win9P.Protocol.Messages
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
-            var offset = Protocol.writeUint(bytes, Length, 0);
+            var offset = Protocol.WriteUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
-            offset += Protocol.writeUshort(bytes, Tag, offset);
+            offset += Constants.Bit8Sz;
+            offset += Protocol.WriteUshort(bytes, Tag, offset);
 
-            offset += Protocol.writeQid(bytes, Qid, offset);
+            offset += Protocol.WriteQid(bytes, Qid, offset);
 
             if (offset < Length)
             {

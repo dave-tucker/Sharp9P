@@ -7,15 +7,15 @@ namespace Win9P.Protocol
 {
     public class Protocol
     {
-        private readonly Stream _stream;
         private readonly int _msize = 8192;
+        private readonly Stream _stream;
 
         public Protocol(Stream stream)
         {
             _stream = stream;
         }
 
-        private byte[] readBytes(int n)
+        private byte[] ReadBytes(int n)
         {
             var data = new byte[n];
             var r = _stream.Read(data, 0, n);
@@ -26,69 +26,69 @@ namespace Win9P.Protocol
             return data;
         }
 
-        internal static uint readUInt(byte[] data, int offset)
+        internal static uint ReadUInt(byte[] data, int offset)
         {
             return BitConverter.ToUInt32(data, offset);
         }
 
-        internal static ulong readULong(byte[] data, int offset)
+        internal static ulong ReadULong(byte[] data, int offset)
         {
             return BitConverter.ToUInt64(data, offset);
         }
 
-        internal static ushort readUShort(byte[] data, int offset)
+        internal static ushort ReadUShort(byte[] data, int offset)
         {
             return BitConverter.ToUInt16(data, offset);
         }
 
-        internal static string readString(byte[] data, int offset)
+        internal static string ReadString(byte[] data, int offset)
         {
             var utf8 = new UTF8Encoding();
-            var len = readUShort(data, offset);
+            var len = ReadUShort(data, offset);
             Console.WriteLine($"String Length: {len}, Offset: {offset}");
-            offset += Constants.BIT16SZ;
+            offset += Constants.Bit16Sz;
             var strdata = new char[utf8.GetCharCount(data, offset, len)];
             utf8.GetChars(data, offset, len, strdata, 0);
             return new string(strdata);
         }
 
-        internal static Qid readQid(byte[] bytes, int offset)
+        internal static Qid ReadQid(byte[] bytes, int offset)
         {
-            var b = new byte[Constants.QIDSZ];
-            Array.Copy(bytes, offset, b, 0, Constants.QIDSZ);
+            var b = new byte[Constants.Qidsz];
+            Array.Copy(bytes, offset, b, 0, Constants.Qidsz);
             return new Qid(b);
         }
 
-        internal static Stat readStat(byte[] bytes, int offset)
+        internal static Stat ReadStat(byte[] bytes, int offset)
         {
-            var length = readUShort(bytes, offset);
+            var length = ReadUShort(bytes, offset);
             var b = new byte[length];
             Array.Copy(bytes, offset, b, 0, length);
             return new Stat(b);
         }
 
-        private byte[] readMessage()
+        private byte[] ReadMessage()
         {
             // Read length uint
-            var length = readBytes(Constants.BIT32SZ);
-            var pktlen = readUInt(length, 0);
-            if (pktlen - Constants.BIT32SZ > _msize)
+            var length = ReadBytes(Constants.Bit32Sz);
+            var pktlen = ReadUInt(length, 0);
+            if (pktlen - Constants.Bit32Sz > _msize)
                 throw new Exception("Message too large!");
 
             // Read the remainder of the packet (minus the uint length)
-            var data = readBytes((int) pktlen - Constants.BIT32SZ);
+            var data = ReadBytes((int) pktlen - Constants.Bit32Sz);
 
             var pkt = new byte[pktlen];
             length.CopyTo(pkt, 0);
-            data.CopyTo(pkt, Constants.BIT32SZ);
+            data.CopyTo(pkt, Constants.Bit32Sz);
             return pkt;
         }
 
         public Message Read()
         {
             Message message;
-            var bytes = readMessage();
-            var offset = Constants.BIT32SZ;
+            var bytes = ReadMessage();
+            var offset = Constants.Bit32Sz;
             var type = bytes[offset];
             switch (type)
             {
@@ -179,58 +179,57 @@ namespace Win9P.Protocol
             return message;
         }
 
-        internal static int writeUlong(byte[] data, ulong var, int offset)
+        internal static int WriteUlong(byte[] data, ulong var, int offset)
         {
             var bytes = BitConverter.GetBytes(var);
             Array.Copy(bytes, 0, data, offset, bytes.Length);
-            return Constants.BIT64SZ;
+            return Constants.Bit64Sz;
         }
 
-        internal static int writeUint(byte[] data, uint var, int offset)
+        internal static int WriteUint(byte[] data, uint var, int offset)
         {
             var bytes = BitConverter.GetBytes(var);
             Array.Copy(bytes, 0, data, offset, bytes.Length);
-            return Constants.BIT32SZ;
+            return Constants.Bit32Sz;
         }
 
-        internal static int writeUshort(byte[] data, ushort var, int offset)
+        internal static int WriteUshort(byte[] data, ushort var, int offset)
         {
             var bytes = BitConverter.GetBytes(var);
             Array.Copy(bytes, 0, data, offset, bytes.Length);
-            return Constants.BIT16SZ;
+            return Constants.Bit16Sz;
         }
 
-        internal static int writeString(byte[] data, string var, int offset)
+        internal static int WriteString(byte[] data, string var, int offset)
         {
             var utf8 = new UTF8Encoding();
 
-            writeUshort(data, (ushort) var.Length, offset);
-            offset += Constants.BIT16SZ;
+            WriteUshort(data, (ushort) var.Length, offset);
+            offset += Constants.Bit16Sz;
 
             var bytes = utf8.GetBytes(var);
             Array.Copy(bytes, 0, data, offset, utf8.GetByteCount(var));
-            return Constants.BIT16SZ + utf8.GetByteCount(var);
+            return Constants.Bit16Sz + utf8.GetByteCount(var);
         }
 
-        internal static int writeQid(byte[] data, Qid qid, int offset)
+        internal static int WriteQid(byte[] data, Qid qid, int offset)
         {
             var bytes = qid.ToBytes();
-            Array.Copy(bytes, 0, data, offset, Constants.QIDSZ);
-            return Constants.QIDSZ;
+            Array.Copy(bytes, 0, data, offset, Constants.Qidsz);
+            return Constants.Qidsz;
         }
 
-        internal static int writeStat(byte[] data, Stat stat, int offset)
+        internal static int WriteStat(byte[] data, Stat stat, int offset)
         {
             var bytes = stat.ToBytes();
             Array.Copy(bytes, 0, data, offset, stat.Size);
             return stat.Size;
         }
 
-
         internal static uint GetStringLength(string var)
         {
             var utf8 = new UTF8Encoding();
-            return (uint) (Constants.BIT16SZ + utf8.GetByteCount(var));
+            return (uint) (Constants.Bit16Sz + utf8.GetByteCount(var));
         }
 
         public void Write(Message message)

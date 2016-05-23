@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using Win9P.Protocol;
 
 namespace Win9P.Exceptions
 {
@@ -20,7 +19,6 @@ namespace Win9P.Exceptions
 
         public UnexpectedMessageException(byte expected, byte received) : base(SetMessage(expected, received))
         {
-            
         }
 
         protected UnexpectedMessageException(SerializationInfo info, StreamingContext context) : base(info, context)

@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Win9P.Exceptions
 {
@@ -17,7 +13,8 @@ namespace Win9P.Exceptions
         {
         }
 
-        public UnsupportedVersionException(string message, Exception innerException) : base(SetMessage(message), innerException)
+        public UnsupportedVersionException(string message, Exception innerException)
+            : base(SetMessage(message), innerException)
         {
         }
 

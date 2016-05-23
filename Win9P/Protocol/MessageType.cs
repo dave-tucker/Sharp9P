@@ -29,6 +29,6 @@
         Tstat,
         Rstat,
         Twstat,
-        Rwstat,
-    };
+        Rwstat
+    }
 }

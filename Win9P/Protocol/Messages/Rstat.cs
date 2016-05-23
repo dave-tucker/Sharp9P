@@ -1,5 +1,4 @@
-﻿using System;
-using Win9P.Exceptions;
+﻿using Win9P.Exceptions;
 
 namespace Win9P.Protocol.Messages
 {
@@ -15,7 +14,7 @@ namespace Win9P.Protocol.Messages
         public Rstat(byte[] bytes) : base(bytes)
         {
             var offset = Constants.HeaderOffset;
-            Stat = Protocol.readStat(bytes, offset);
+            Stat = Protocol.ReadStat(bytes, offset);
             offset += Stat.Size;
             if (offset < Length)
             {
@@ -28,12 +27,12 @@ namespace Win9P.Protocol.Messages
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
-            var offset = Protocol.writeUint(bytes, Length, 0);
+            var offset = Protocol.WriteUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
-            offset += Protocol.writeUshort(bytes, Tag, offset);
+            offset += Constants.Bit8Sz;
+            offset += Protocol.WriteUshort(bytes, Tag, offset);
 
-            offset += Protocol.writeStat(bytes, Stat, offset);
+            offset += Protocol.WriteStat(bytes, Stat, offset);
 
             if (offset < Length)
             {
@@ -59,7 +58,7 @@ namespace Win9P.Protocol.Messages
         {
             unchecked
             {
-                return (base.GetHashCode()*397) ^ (Stat != null ? Stat.GetHashCode() : 0);
+                return (base.GetHashCode()*397) ^ (Stat?.GetHashCode() ?? 0);
             }
         }
     }

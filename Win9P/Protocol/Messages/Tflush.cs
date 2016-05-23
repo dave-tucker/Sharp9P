@@ -1,5 +1,4 @@
-﻿using System;
-using Win9P.Exceptions;
+﻿using Win9P.Exceptions;
 
 namespace Win9P.Protocol.Messages
 {
@@ -9,14 +8,14 @@ namespace Win9P.Protocol.Messages
         {
             Type = (byte) MessageType.Tflush;
             Oldtag = oldTag;
-            Length += Constants.BIT16SZ;
+            Length += Constants.Bit16Sz;
         }
 
         public Tflush(byte[] bytes) : base(bytes)
         {
             var offset = Constants.HeaderOffset;
-            Oldtag = Protocol.readUShort(bytes, offset);
-            offset += Constants.BIT16SZ;
+            Oldtag = Protocol.ReadUShort(bytes, offset);
+            offset += Constants.Bit16Sz;
             if (offset < Length)
             {
                 throw new InsufficientDataException(Length, offset);
@@ -28,11 +27,11 @@ namespace Win9P.Protocol.Messages
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
-            var offset = Protocol.writeUint(bytes, Length, 0);
+            var offset = Protocol.WriteUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
-            offset += Protocol.writeUshort(bytes, Tag, offset);
-            offset += Protocol.writeUshort(bytes, Oldtag, offset);
+            offset += Constants.Bit8Sz;
+            offset += Protocol.WriteUshort(bytes, Tag, offset);
+            offset += Protocol.WriteUshort(bytes, Oldtag, offset);
             if (offset < Length)
             {
                 throw new InsufficientDataException(Length, offset);

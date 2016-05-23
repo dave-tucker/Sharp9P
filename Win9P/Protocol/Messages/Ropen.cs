@@ -1,5 +1,4 @@
-﻿using System;
-using Win9P.Exceptions;
+﻿using Win9P.Exceptions;
 
 namespace Win9P.Protocol.Messages
 {
@@ -13,16 +12,16 @@ namespace Win9P.Protocol.Messages
             Type = (byte) MessageType.Ropen;
             Qid = qid;
             Iounit = iounit;
-            Length += Constants.QIDSZ + Constants.BIT32SZ;
+            Length += Constants.Qidsz + Constants.Bit32Sz;
         }
 
         public Ropen(byte[] bytes) : base(bytes)
         {
             var offset = Constants.HeaderOffset;
-            Qid = Protocol.readQid(bytes, offset);
-            offset += Constants.QIDSZ;
-            Iounit = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
+            Qid = Protocol.ReadQid(bytes, offset);
+            offset += Constants.Qidsz;
+            Iounit = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
             if (offset < Length)
             {
                 throw new InsufficientDataException(Length, offset);
@@ -32,17 +31,17 @@ namespace Win9P.Protocol.Messages
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
-            var offset = Protocol.writeUint(bytes, Length, 0);
+            var offset = Protocol.WriteUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
-            offset += Protocol.writeUshort(bytes, Tag, offset);
+            offset += Constants.Bit8Sz;
+            offset += Protocol.WriteUshort(bytes, Tag, offset);
 
-            offset += Protocol.writeQid(bytes, Qid, offset);
-            offset += Protocol.writeUint(bytes, Iounit, offset);
+            offset += Protocol.WriteQid(bytes, Qid, offset);
+            offset += Protocol.WriteUint(bytes, Iounit, offset);
 
             if (offset < Length)
             {
-               throw new InsufficientDataException(Length, offset);
+                throw new InsufficientDataException(Length, offset);
             }
             return bytes;
         }

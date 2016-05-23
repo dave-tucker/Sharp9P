@@ -13,7 +13,8 @@ namespace Win9P.Exceptions
         {
         }
 
-        public ServerErrorException(string message, Exception innerException) : base(SetMessage(message), innerException)
+        public ServerErrorException(string message, Exception innerException)
+            : base(SetMessage(message), innerException)
         {
         }
 

@@ -11,7 +11,7 @@ namespace Win9P.Protocol.Messages
             Afid = afid;
             Uname = uname;
             Aname = aname;
-            Length += Constants.BIT32SZ + Constants.BIT32SZ +
+            Length += Constants.Bit32Sz + Constants.Bit32Sz +
                       Protocol.GetStringLength(uname) +
                       Protocol.GetStringLength(aname);
         }
@@ -19,13 +19,13 @@ namespace Win9P.Protocol.Messages
         public Tattach(byte[] bytes) : base(bytes)
         {
             var offset = Constants.HeaderOffset;
-            Fid = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
-            Afid = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
-            Uname = Protocol.readString(bytes, offset);
+            Fid = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
+            Afid = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
+            Uname = Protocol.ReadString(bytes, offset);
             offset += (int) Protocol.GetStringLength(Uname);
-            Aname = Protocol.readString(bytes, offset);
+            Aname = Protocol.ReadString(bytes, offset);
             offset += (int) Protocol.GetStringLength(Aname);
             if (offset < Length)
             {
@@ -41,17 +41,17 @@ namespace Win9P.Protocol.Messages
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
-            var offset = Protocol.writeUint(bytes, Length, 0);
+            var offset = Protocol.WriteUint(bytes, Length, 0);
 
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
+            offset += Constants.Bit8Sz;
 
-            offset += Protocol.writeUshort(bytes, Tag, offset);
+            offset += Protocol.WriteUshort(bytes, Tag, offset);
 
-            offset += Protocol.writeUint(bytes, Fid, offset);
-            offset += Protocol.writeUint(bytes, Afid, offset);
-            offset += Protocol.writeString(bytes, Uname, offset);
-            offset += Protocol.writeString(bytes, Aname, offset);
+            offset += Protocol.WriteUint(bytes, Fid, offset);
+            offset += Protocol.WriteUint(bytes, Afid, offset);
+            offset += Protocol.WriteString(bytes, Uname, offset);
+            offset += Protocol.WriteString(bytes, Aname, offset);
 
             if (offset < Length)
             {

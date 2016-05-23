@@ -12,20 +12,20 @@ namespace Win9P.Protocol.Messages
             Name = name;
             Perm = perm;
             Mode = mode;
-            Length += Constants.BIT32SZ + Protocol.GetStringLength(Name) + Constants.BIT32SZ + Constants.BIT8SZ;
+            Length += Constants.Bit32Sz + Protocol.GetStringLength(Name) + Constants.Bit32Sz + Constants.Bit8Sz;
         }
 
         public Tcreate(byte[] bytes) : base(bytes)
         {
             var offset = Constants.HeaderOffset;
-            Fid = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
-            Name = Protocol.readString(bytes, offset);
+            Fid = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
+            Name = Protocol.ReadString(bytes, offset);
             offset += (int) Protocol.GetStringLength(Name);
-            Perm = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
+            Perm = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
             Mode = bytes[offset];
-            offset += Constants.BIT8SZ;
+            offset += Constants.Bit8Sz;
             if (offset < Length)
             {
                 throw new InsufficientDataException(Length, offset);
@@ -41,16 +41,16 @@ namespace Win9P.Protocol.Messages
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
-            var offset = Protocol.writeUint(bytes, Length, 0);
+            var offset = Protocol.WriteUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
-            offset += Protocol.writeUshort(bytes, Tag, offset);
+            offset += Constants.Bit8Sz;
+            offset += Protocol.WriteUshort(bytes, Tag, offset);
 
-            offset += Protocol.writeUint(bytes, Fid, offset);
-            offset += Protocol.writeString(bytes, Name, offset);
-            offset += Protocol.writeUint(bytes, Perm, offset);
+            offset += Protocol.WriteUint(bytes, Fid, offset);
+            offset += Protocol.WriteString(bytes, Name, offset);
+            offset += Protocol.WriteUint(bytes, Perm, offset);
             bytes[offset] = Mode;
-            offset += Constants.BIT8SZ;
+            offset += Constants.Bit8Sz;
 
             if (offset < Length)
             {

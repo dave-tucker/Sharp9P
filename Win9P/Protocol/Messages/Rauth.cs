@@ -1,5 +1,4 @@
-﻿using System;
-using Win9P.Exceptions;
+﻿using Win9P.Exceptions;
 
 namespace Win9P.Protocol.Messages
 {
@@ -9,14 +8,14 @@ namespace Win9P.Protocol.Messages
         {
             Type = (byte) MessageType.Rauth;
             Aqid = aqid;
-            Length += Constants.QIDSZ;
+            Length += Constants.Qidsz;
         }
 
         public Rauth(byte[] bytes) : base(bytes)
         {
             var offset = Constants.HeaderOffset;
-            Aqid = Protocol.readQid(bytes, Constants.HeaderOffset);
-            offset += Constants.QIDSZ;
+            Aqid = Protocol.ReadQid(bytes, Constants.HeaderOffset);
+            offset += Constants.Qidsz;
             if (offset < Length)
             {
                 throw new InsufficientDataException(Length, offset);
@@ -28,14 +27,14 @@ namespace Win9P.Protocol.Messages
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
-            var offset = Protocol.writeUint(bytes, Length, 0);
+            var offset = Protocol.WriteUint(bytes, Length, 0);
 
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
+            offset += Constants.Bit8Sz;
 
-            offset += Protocol.writeUshort(bytes, Tag, offset);
+            offset += Protocol.WriteUshort(bytes, Tag, offset);
 
-            offset += Protocol.writeQid(bytes, Aqid, offset);
+            offset += Protocol.WriteQid(bytes, Aqid, offset);
 
             if (offset < Length)
             {

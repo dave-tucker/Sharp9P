@@ -19,7 +19,6 @@ namespace Win9P.Exceptions
 
         public TagMismatchException(ushort expected, ushort received) : base(SetMessage(expected, received))
         {
-            
         }
 
         protected TagMismatchException(SerializationInfo info, StreamingContext context) : base(info, context)

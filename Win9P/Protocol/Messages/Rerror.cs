@@ -1,5 +1,4 @@
-﻿using System;
-using Win9P.Exceptions;
+﻿using Win9P.Exceptions;
 
 namespace Win9P.Protocol.Messages
 {
@@ -15,7 +14,7 @@ namespace Win9P.Protocol.Messages
         public Rerror(byte[] bytes) : base(bytes)
         {
             var offset = Constants.HeaderOffset;
-            Ename = Protocol.readString(bytes, offset);
+            Ename = Protocol.ReadString(bytes, offset);
             offset += (int) Protocol.GetStringLength(Ename);
             if (offset < Length)
             {
@@ -28,11 +27,11 @@ namespace Win9P.Protocol.Messages
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
-            var offset = Protocol.writeUint(bytes, Length, 0);
+            var offset = Protocol.WriteUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
-            offset += Protocol.writeUshort(bytes, Tag, offset);
-            offset += Protocol.writeString(bytes, Ename, offset);
+            offset += Constants.Bit8Sz;
+            offset += Protocol.WriteUshort(bytes, Tag, offset);
+            offset += Protocol.WriteString(bytes, Ename, offset);
             if (offset < Length)
             {
                 throw new InsufficientDataException(Length, offset);

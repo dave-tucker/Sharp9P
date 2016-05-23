@@ -29,10 +29,10 @@ namespace Win9P.Protocol
             Uid = uid;
             Gid = gid;
             Muid = muid;
-            Size = (ushort) (Constants.BIT16SZ + Constants.BIT16SZ +
-                             Constants.BIT32SZ + Constants.QIDSZ +
-                             Constants.BIT32SZ + Constants.BIT32SZ +
-                             Constants.BIT32SZ + Constants.BIT64SZ +
+            Size = (ushort) (Constants.Bit16Sz + Constants.Bit16Sz +
+                             Constants.Bit32Sz + Constants.Qidsz +
+                             Constants.Bit32Sz + Constants.Bit32Sz +
+                             Constants.Bit32Sz + Constants.Bit64Sz +
                              Protocol.GetStringLength(Name) +
                              Protocol.GetStringLength(Uid) +
                              Protocol.GetStringLength(Gid) +
@@ -42,29 +42,29 @@ namespace Win9P.Protocol
         public Stat(byte[] bytes)
         {
             var offset = 0;
-            Size = Protocol.readUShort(bytes, offset);
-            offset += Constants.BIT16SZ;
-            Type = Protocol.readUShort(bytes, offset);
-            offset += Constants.BIT16SZ;
-            Dev = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
-            Qid = Protocol.readQid(bytes, offset);
-            offset += Constants.QIDSZ;
-            Mode = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
-            Atime = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
-            Mtime = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
-            Length = Protocol.readULong(bytes, offset);
-            offset += Constants.BIT64SZ;
-            Name = Protocol.readString(bytes, offset);
+            Size = Protocol.ReadUShort(bytes, offset);
+            offset += Constants.Bit16Sz;
+            Type = Protocol.ReadUShort(bytes, offset);
+            offset += Constants.Bit16Sz;
+            Dev = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
+            Qid = Protocol.ReadQid(bytes, offset);
+            offset += Constants.Qidsz;
+            Mode = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
+            Atime = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
+            Mtime = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
+            Length = Protocol.ReadULong(bytes, offset);
+            offset += Constants.Bit64Sz;
+            Name = Protocol.ReadString(bytes, offset);
             offset += (int) Protocol.GetStringLength(Name);
-            Uid = Protocol.readString(bytes, offset);
+            Uid = Protocol.ReadString(bytes, offset);
             offset += (int) Protocol.GetStringLength(Uid);
-            Gid = Protocol.readString(bytes, offset);
+            Gid = Protocol.ReadString(bytes, offset);
             offset += (int) Protocol.GetStringLength(Gid);
-            Muid = Protocol.readString(bytes, offset);
+            Muid = Protocol.ReadString(bytes, offset);
             offset += (int) Protocol.GetStringLength(Muid);
             if (offset < Size)
             {
@@ -90,18 +90,18 @@ namespace Win9P.Protocol
             var bytes = new byte[Size];
             var offset = 0;
 
-            offset += Protocol.writeUshort(bytes, Size, offset);
-            offset += Protocol.writeUshort(bytes, Type, offset);
-            offset += Protocol.writeUint(bytes, Dev, offset);
-            offset += Protocol.writeQid(bytes, Qid, offset);
-            offset += Protocol.writeUint(bytes, Mode, offset);
-            offset += Protocol.writeUint(bytes, Atime, offset);
-            offset += Protocol.writeUint(bytes, Mtime, offset);
-            offset += Protocol.writeUlong(bytes, Length, offset);
-            offset += Protocol.writeString(bytes, Name, offset);
-            offset += Protocol.writeString(bytes, Uid, offset);
-            offset += Protocol.writeString(bytes, Gid, offset);
-            offset += Protocol.writeString(bytes, Muid, offset);
+            offset += Protocol.WriteUshort(bytes, Size, offset);
+            offset += Protocol.WriteUshort(bytes, Type, offset);
+            offset += Protocol.WriteUint(bytes, Dev, offset);
+            offset += Protocol.WriteQid(bytes, Qid, offset);
+            offset += Protocol.WriteUint(bytes, Mode, offset);
+            offset += Protocol.WriteUint(bytes, Atime, offset);
+            offset += Protocol.WriteUint(bytes, Mtime, offset);
+            offset += Protocol.WriteUlong(bytes, Length, offset);
+            offset += Protocol.WriteString(bytes, Name, offset);
+            offset += Protocol.WriteString(bytes, Uid, offset);
+            offset += Protocol.WriteString(bytes, Gid, offset);
+            offset += Protocol.WriteString(bytes, Muid, offset);
 
             if (offset < Size)
             {
@@ -133,15 +133,15 @@ namespace Win9P.Protocol
                 var hashCode = Size.GetHashCode();
                 hashCode = (hashCode*397) ^ Type.GetHashCode();
                 hashCode = (hashCode*397) ^ (int) Dev;
-                hashCode = (hashCode*397) ^ (Qid != null ? Qid.GetHashCode() : 0);
+                hashCode = (hashCode*397) ^ (Qid?.GetHashCode() ?? 0);
                 hashCode = (hashCode*397) ^ (int) Mode;
                 hashCode = (hashCode*397) ^ (int) Atime;
                 hashCode = (hashCode*397) ^ (int) Mtime;
                 hashCode = (hashCode*397) ^ Length.GetHashCode();
-                hashCode = (hashCode*397) ^ (Name != null ? Name.GetHashCode() : 0);
-                hashCode = (hashCode*397) ^ (Uid != null ? Uid.GetHashCode() : 0);
-                hashCode = (hashCode*397) ^ (Gid != null ? Gid.GetHashCode() : 0);
-                hashCode = (hashCode*397) ^ (Muid != null ? Muid.GetHashCode() : 0);
+                hashCode = (hashCode*397) ^ (Name?.GetHashCode() ?? 0);
+                hashCode = (hashCode*397) ^ (Uid?.GetHashCode() ?? 0);
+                hashCode = (hashCode*397) ^ (Gid?.GetHashCode() ?? 0);
+                hashCode = (hashCode*397) ^ (Muid?.GetHashCode() ?? 0);
                 return hashCode;
             }
         }

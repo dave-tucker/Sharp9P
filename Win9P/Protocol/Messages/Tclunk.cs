@@ -1,5 +1,4 @@
-﻿using System;
-using Win9P.Exceptions;
+﻿using Win9P.Exceptions;
 
 namespace Win9P.Protocol.Messages
 {
@@ -9,14 +8,14 @@ namespace Win9P.Protocol.Messages
         {
             Type = (byte) MessageType.Tclunk;
             Fid = fid;
-            Length += Constants.BIT32SZ;
+            Length += Constants.Bit32Sz;
         }
 
         public Tclunk(byte[] bytes) : base(bytes)
         {
             var offset = Constants.HeaderOffset;
-            Fid = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
+            Fid = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
             if (offset < Length)
             {
                 throw new InsufficientDataException(Length, offset);
@@ -28,12 +27,12 @@ namespace Win9P.Protocol.Messages
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
-            var offset = Protocol.writeUint(bytes, Length, 0);
+            var offset = Protocol.WriteUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
-            offset += Protocol.writeUshort(bytes, Tag, offset);
+            offset += Constants.Bit8Sz;
+            offset += Protocol.WriteUshort(bytes, Tag, offset);
 
-            offset += Protocol.writeUint(bytes, Fid, offset);
+            offset += Protocol.WriteUint(bytes, Fid, offset);
             if (offset < Length)
             {
                 throw new InsufficientDataException(Length, offset);

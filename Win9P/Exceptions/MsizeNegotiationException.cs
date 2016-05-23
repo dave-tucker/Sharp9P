@@ -19,7 +19,6 @@ namespace Win9P.Exceptions
 
         public MsizeNegotiationException(uint expected, uint received) : base(SetMessage(expected, received))
         {
-            
         }
 
         protected MsizeNegotiationException(SerializationInfo info, StreamingContext context) : base(info, context)

@@ -9,15 +9,15 @@ namespace Win9P.Protocol.Messages
             Type = (byte) MessageType.Twstat;
             Fid = fid;
             Stat = stat;
-            Length += Constants.BIT32SZ + (uint) Stat.Size;
+            Length += Constants.Bit32Sz + (uint) Stat.Size;
         }
 
         public Twstat(byte[] bytes) : base(bytes)
         {
             var offset = Constants.HeaderOffset;
-            Fid = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
-            Stat = Protocol.readStat(bytes, offset);
+            Fid = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
+            Stat = Protocol.ReadStat(bytes, offset);
             offset += Stat.Size;
             if (offset < Length)
             {
@@ -31,13 +31,13 @@ namespace Win9P.Protocol.Messages
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
-            var offset = Protocol.writeUint(bytes, Length, 0);
+            var offset = Protocol.WriteUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
-            offset += Protocol.writeUshort(bytes, Tag, offset);
+            offset += Constants.Bit8Sz;
+            offset += Protocol.WriteUshort(bytes, Tag, offset);
 
-            offset += Protocol.writeUint(bytes, Fid, offset);
-            offset += Protocol.writeStat(bytes, Stat, offset);
+            offset += Protocol.WriteUint(bytes, Fid, offset);
+            offset += Protocol.WriteStat(bytes, Stat, offset);
 
             if (offset < Length)
             {

@@ -11,14 +11,14 @@ namespace Win9P.Protocol.Messages
             Type = (byte) MessageType.Rread;
             Count = count;
             Data = data;
-            Length += Constants.BIT32SZ + Count;
+            Length += Constants.Bit32Sz + Count;
         }
 
         public Rread(byte[] bytes) : base(bytes)
         {
             var offset = Constants.HeaderOffset;
-            Count = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
+            Count = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
             Data = new byte[Count];
             Array.Copy(bytes, offset, Data, 0, Count);
             offset += (int) Count;
@@ -34,12 +34,12 @@ namespace Win9P.Protocol.Messages
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
-            var offset = Protocol.writeUint(bytes, Length, 0);
+            var offset = Protocol.WriteUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
-            offset += Protocol.writeUshort(bytes, Tag, offset);
+            offset += Constants.Bit8Sz;
+            offset += Protocol.WriteUshort(bytes, Tag, offset);
 
-            offset += Protocol.writeUint(bytes, Count, offset);
+            offset += Protocol.WriteUint(bytes, Count, offset);
             Array.Copy(Data, 0, bytes, offset, Count);
             offset += (int) Count;
 

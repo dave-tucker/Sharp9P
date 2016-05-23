@@ -6,19 +6,17 @@ namespace Win9P.Protocol
     {
         protected Message(byte[] bytes)
         {
-            Length = Protocol.readUInt(bytes, 0);
-            var offset = Constants.BIT32SZ;
-
+            var offset = 0;
+            Length = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
             Type = bytes[offset];
-            offset += Constants.BIT8SZ;
-
-            Tag = Protocol.readUShort(bytes, offset);
-            offset += Constants.BIT16SZ;
+            offset += Constants.Bit8Sz;
+            Tag = Protocol.ReadUShort(bytes, offset);
         }
 
         protected Message()
         {
-            Length = Constants.BIT32SZ + Constants.BIT8SZ + Constants.BIT16SZ;
+            Length = Constants.Bit32Sz + Constants.Bit8Sz + Constants.Bit16Sz;
         }
 
         public uint Length { get; protected set; }
@@ -28,12 +26,12 @@ namespace Win9P.Protocol
         public virtual byte[] ToBytes()
         {
             var bytes = new byte[Length];
-            var offset = Protocol.writeUint(bytes, Length, 0);
+            var offset = Protocol.WriteUint(bytes, Length, 0);
 
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
+            offset += Constants.Bit8Sz;
 
-            offset += Protocol.writeUshort(bytes, Tag, offset);
+            offset += Protocol.WriteUshort(bytes, Tag, offset);
 
             if (offset < Length)
             {

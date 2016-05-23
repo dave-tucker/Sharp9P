@@ -19,24 +19,24 @@ namespace Win9P.Protocol
         {
             var offset = 0;
             Type = bytes[offset];
-            offset += Constants.BIT8SZ;
-            Vers = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
-            Path = Protocol.readULong(bytes, offset);
+            offset += Constants.Bit8Sz;
+            Vers = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
+            Path = Protocol.ReadULong(bytes, offset);
         }
 
         public byte[] ToBytes()
         {
-            var bytes = new byte[Constants.QIDSZ];
+            var bytes = new byte[Constants.Qidsz];
             var offset = 0;
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
-            offset += Protocol.writeUint(bytes, Vers, offset);
-            offset += Protocol.writeUlong(bytes, Path, offset);
+            offset += Constants.Bit8Sz;
+            offset += Protocol.WriteUint(bytes, Vers, offset);
+            offset += Protocol.WriteUlong(bytes, Path, offset);
 
-            if (offset < Constants.QIDSZ)
+            if (offset < Constants.Qidsz)
             {
-                throw new Exception($"Buffer underflow. Len: {Constants.QIDSZ}, Offset: {offset}");
+                throw new Exception($"Buffer underflow. Len: {Constants.Qidsz}, Offset: {offset}");
             }
             return bytes;
         }

@@ -1,5 +1,4 @@
-﻿using System;
-using Win9P.Exceptions;
+﻿using Win9P.Exceptions;
 
 namespace Win9P.Protocol.Messages
 {
@@ -10,15 +9,15 @@ namespace Win9P.Protocol.Messages
             Type = (byte) MessageType.Rversion;
             Msize = msize;
             Version = version;
-            Length += Constants.BIT32SZ + Protocol.GetStringLength(version);
+            Length += Constants.Bit32Sz + Protocol.GetStringLength(version);
         }
 
         public Rversion(byte[] bytes) : base(bytes)
         {
             var offset = Constants.HeaderOffset;
-            Msize = Protocol.readUInt(bytes, offset);
-            offset += Constants.BIT32SZ;
-            Version = Protocol.readString(bytes, offset);
+            Msize = Protocol.ReadUInt(bytes, offset);
+            offset += Constants.Bit32Sz;
+            Version = Protocol.ReadString(bytes, offset);
             offset += (int) Protocol.GetStringLength(Version);
             if (offset < Length)
             {
@@ -32,16 +31,16 @@ namespace Win9P.Protocol.Messages
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
-            var offset = Protocol.writeUint(bytes, Length, 0);
+            var offset = Protocol.WriteUint(bytes, Length, 0);
 
             bytes[offset] = Type;
-            offset += Constants.BIT8SZ;
+            offset += Constants.Bit8Sz;
 
-            offset += Protocol.writeUshort(bytes, Tag, offset);
+            offset += Protocol.WriteUshort(bytes, Tag, offset);
 
-            offset += Protocol.writeUint(bytes, Msize, offset);
+            offset += Protocol.WriteUint(bytes, Msize, offset);
 
-            offset += Protocol.writeString(bytes, Version, offset);
+            offset += Protocol.WriteString(bytes, Version, offset);
 
             if (offset < Length)
             {

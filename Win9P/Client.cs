@@ -129,7 +129,7 @@ namespace Win9P
 
         public Qid[] Walk(uint fid, uint newFid, string[] nwnames)
         {
-            if (nwnames.Length > Constants.MAXWELEM)
+            if (nwnames.Length > Constants.Maxwelem)
             {
                 throw new Exception("No more thatn 16 elements allowed");
             }
