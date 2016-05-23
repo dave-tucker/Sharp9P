@@ -1,25 +1,24 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
+using Win9P.Exceptions;
 using Win9P.Protocol;
+using Win9P.Protocol.Messages;
 
 namespace Win9P
 {
     public class Client
     {
-        public const uint DefaultMsize = 16384;
-        public const string DefaultVersion = "9P2000";
-        public const uint RootFid = 1;
-        private uint _msize;
-        private string _version;
-        private readonly Queue _tagQueue;
         private readonly Queue _fidQueue;
         private readonly Protocol.Protocol _protocol;
+        private readonly Queue _tagQueue;
+        private uint _msize;
+        private string _version;
 
         public Client(Stream stream)
         {
-            _msize = DefaultMsize;
-            _version = DefaultVersion;
+            _msize = Constants.DefaultMsize;
+            _version = Constants.DefaultVersion;
             _protocol = new Protocol.Protocol(stream);
             _tagQueue = new Queue();
             for (ushort i = 1; i < 65535; i++)
@@ -33,6 +32,19 @@ namespace Win9P
             }
         }
 
+        public uint AllocateFid(uint parent)
+        {
+            var fid = (uint) _fidQueue.Dequeue();
+            Walk(parent, fid, new string[0]);
+            return fid;
+        }
+
+        public void FreeFid(uint fid)
+        {
+            Clunk(fid);
+            _fidQueue.Enqueue(fid);
+        }
+
         public void Version(uint msize, string version)
         {
             var request = new Tversion(_msize, _version);
@@ -40,26 +52,27 @@ namespace Win9P
 
             var r = _protocol.Read();
             Rversion response;
-            try { 
+            try
+            {
                 response = (Rversion) r;
             }
             catch (InvalidCastException)
             {
-                if (r.Type != (byte) MessageType.Rerror) throw new Exception("Unexpected Message Type");
+                if (r.Type != (byte) MessageType.Rerror) throw new UnexpectedMessageException(request.Type, r.Type);
                 var err = (Rerror) r;
-                throw new Exception($"Server Error: {err.Ename}");
+                throw new ServerErrorException(err.Ename);
             }
             /* The server responds with its own maxi-
             mum, msize, which must be less than or equal to the client's
             value */
             if (response.Msize > request.Msize)
             {
-                throw new Exception("Server responded with larger Msize");
+                throw new MsizeNegotiationException(request.Msize, response.Msize);
             }
             _msize = response.Msize;
             if (response.Version != request.Version)
             {
-                throw new Exception("Version not supported");
+                throw new UnsupportedVersionException(response.Version);
             }
             _version = response.Version;
         }
@@ -68,79 +81,77 @@ namespace Win9P
         {
             var request = new Tattach(fid, afid, uname, aname)
             {
-                Tag = (ushort)_tagQueue.Dequeue()
+                Tag = (ushort) _tagQueue.Dequeue()
             };
             _protocol.Write(request);
             var r = _protocol.Read();
             Rattach response;
             try
             {
-                response = (Rattach)r;
+                response = (Rattach) r;
             }
             catch (InvalidCastException)
             {
-                if (r.Type != (byte)MessageType.Rerror) throw new Exception("Unexpected Message Type");
-                var err = (Rerror)r;
-                throw new Exception($"Server Error: {err.Ename}");
+                if (r.Type != (byte) MessageType.Rerror) throw new UnexpectedMessageException(request.Type, r.Type);
+                var err = (Rerror) r;
+                throw new ServerErrorException(err.Ename);
             }
             if (response.Tag != request.Tag)
-                throw new Exception("Tag mismatch");
+                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return response.Qid;
         }
 
-        public Qid Auth(string uname, string aname)
+        public Qid Auth(uint fid, string uname, string aname)
         {
-            var fid = (uint)_fidQueue.Dequeue();
             var request = new Tauth(fid, uname, aname)
             {
-                Tag = (ushort)_tagQueue.Dequeue()
+                Tag = (ushort) _tagQueue.Dequeue()
             };
             _protocol.Write(request);
             var r = _protocol.Read();
             Rauth response;
             try
             {
-                response = (Rauth)r;
+                response = (Rauth) r;
             }
             catch (InvalidCastException)
             {
-                if (r.Type != (byte)MessageType.Rerror) throw new Exception("Unexpected Message Type");
-                var err = (Rerror)r;
-                throw new Exception($"Server Error: {err.Ename}");
+                if (r.Type != (byte) MessageType.Rerror) throw new UnexpectedMessageException(request.Type, r.Type);
+                var err = (Rerror) r;
+                throw new ServerErrorException(err.Ename);
             }
             if (response.Tag != request.Tag)
-                throw new Exception("Tag mistmatch");
+                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return response.Aqid;
         }
 
-        public Qid[] Walk(uint fid, string[] nwnames)
+        public Qid[] Walk(uint fid, uint newFid, string[] nwnames)
         {
-            var newfid = (uint) _fidQueue.Dequeue();
-            if (nwnames.Length > Protocol.Protocol.MAXWELEM)
+            if (nwnames.Length > Constants.MAXWELEM)
             {
                 throw new Exception("No more thatn 16 elements allowed");
             }
-            var request = new Twalk(fid, newfid, (ushort) nwnames.Length, nwnames)
+            var request = new Twalk(fid, newFid, (ushort) nwnames.Length, nwnames)
             {
-                Tag = (ushort)_tagQueue.Dequeue()
+                Tag = (ushort) _tagQueue.Dequeue()
             };
             _protocol.Write(request);
             var r = _protocol.Read();
             Rwalk response;
             try
             {
-                response = (Rwalk)r;
+                response = (Rwalk) r;
             }
             catch (InvalidCastException)
             {
-                if (r.Type != (byte)MessageType.Rerror) throw new Exception("Unexpected Message Type");
-                var err = (Rerror)r;
-                throw new Exception($"Server Error: {err.Ename}");
+                if (r.Type != (byte) MessageType.Rerror) throw new UnexpectedMessageException(request.Type, r.Type);
+                var err = (Rerror) r;
+                throw new ServerErrorException(err.Ename);
             }
             if (response.Tag != request.Tag)
-                throw new Exception("Tag mismatch");
+                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return response.Wqid;
         }
@@ -149,23 +160,23 @@ namespace Win9P
         {
             var request = new Tclunk(fid)
             {
-                Tag = (ushort)_tagQueue.Dequeue()
+                Tag = (ushort) _tagQueue.Dequeue()
             };
             _protocol.Write(request);
             var r = _protocol.Read();
             Rclunk response;
             try
             {
-                response = (Rclunk)r;
+                response = (Rclunk) r;
             }
             catch (InvalidCastException)
             {
-                if (r.Type != (byte)MessageType.Rerror) throw new Exception("Unexpected Message Type");
-                var err = (Rerror)r;
-                throw new Exception($"Server Error: {err.Ename}");
+                if (r.Type != (byte) MessageType.Rerror) throw new UnexpectedMessageException(request.Type, r.Type);
+                var err = (Rerror) r;
+                throw new ServerErrorException(err.Ename);
             }
             if (response.Tag != request.Tag)
-                throw new Exception("Tag mismatch");
+                throw new TagMismatchException(response.Tag, request.Tag);
             _fidQueue.Enqueue(fid);
             _tagQueue.Enqueue(request.Tag);
         }
@@ -174,23 +185,23 @@ namespace Win9P
         {
             var request = new Tcreate(fid, name, perm, mode)
             {
-                Tag = (ushort)_tagQueue.Dequeue()
+                Tag = (ushort) _tagQueue.Dequeue()
             };
             _protocol.Write(request);
             var r = _protocol.Read();
             Rcreate response;
             try
             {
-                response = (Rcreate)r;
+                response = (Rcreate) r;
             }
             catch (InvalidCastException)
             {
-                if (r.Type != (byte)MessageType.Rerror) throw new Exception("Unexpected Message Type");
-                var err = (Rerror)r;
-                throw new Exception($"Server Error: {err.Ename}");
+                if (r.Type != (byte) MessageType.Rerror) throw new UnexpectedMessageException(request.Type, r.Type);
+                var err = (Rerror) r;
+                throw new ServerErrorException(err.Ename);
             }
             if (response.Tag != request.Tag)
-                throw new Exception("Tag mismatch");
+                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return new Tuple<Qid, uint>(response.Qid, response.Iounit);
         }
@@ -199,48 +210,48 @@ namespace Win9P
         {
             var request = new Topen(fid, mode)
             {
-                Tag = (ushort)_tagQueue.Dequeue()
+                Tag = (ushort) _tagQueue.Dequeue()
             };
             _protocol.Write(request);
             var r = _protocol.Read();
             Ropen response;
             try
             {
-                response = (Ropen)r;
+                response = (Ropen) r;
             }
             catch (InvalidCastException)
             {
-                if (r.Type != (byte)MessageType.Rerror) throw new Exception("Unexpected Message Type");
-                var err = (Rerror)r;
-                throw new Exception($"Server Error: {err.Ename}");
+                if (r.Type != (byte) MessageType.Rerror) throw new UnexpectedMessageException(request.Type, r.Type);
+                var err = (Rerror) r;
+                throw new ServerErrorException(err.Ename);
             }
             if (response.Tag != request.Tag)
-                throw new Exception("Tag mismatch");
+                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return new Tuple<Qid, uint>(response.Qid, response.Iounit);
         }
 
         public Tuple<uint, byte[]> Read(uint fid, ulong offset, uint count)
         {
-            var request = new Tread(fid, offset,count)
+            var request = new Tread(fid, offset, count)
             {
-                Tag = (ushort)_tagQueue.Dequeue()
+                Tag = (ushort) _tagQueue.Dequeue()
             };
             _protocol.Write(request);
             var r = _protocol.Read();
             Rread response;
             try
             {
-                response = (Rread)r;
+                response = (Rread) r;
             }
             catch (InvalidCastException)
             {
-                if (r.Type != (byte)MessageType.Rerror) throw new Exception("Unexpected Message Type");
-                var err = (Rerror)r;
-                throw new Exception($"Server Error: {err.Ename}");
+                if (r.Type != (byte) MessageType.Rerror) throw new UnexpectedMessageException(request.Type, r.Type);
+                var err = (Rerror) r;
+                throw new ServerErrorException(err.Ename);
             }
             if (response.Tag != request.Tag)
-                throw new Exception("Tag mismatch");
+                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return new Tuple<uint, byte[]>(response.Count, response.Data);
         }
@@ -249,23 +260,23 @@ namespace Win9P
         {
             var request = new Twrite(fid, offset, count, data)
             {
-                Tag = (ushort)_tagQueue.Dequeue()
+                Tag = (ushort) _tagQueue.Dequeue()
             };
             _protocol.Write(request);
             var r = _protocol.Read();
             Rwrite response;
             try
             {
-                response = (Rwrite)r;
+                response = (Rwrite) r;
             }
             catch (InvalidCastException)
             {
-                if (r.Type != (byte)MessageType.Rerror) throw new Exception("Unexpected Message Type");
-                var err = (Rerror)r;
-                throw new Exception($"Server Error: {err.Ename}");
+                if (r.Type != (byte) MessageType.Rerror) throw new UnexpectedMessageException(request.Type, r.Type);
+                var err = (Rerror) r;
+                throw new ServerErrorException(err.Ename);
             }
             if (response.Tag != request.Tag)
-                throw new Exception("Tag mismatch");
+                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return response.Count;
         }
@@ -274,48 +285,48 @@ namespace Win9P
         {
             var request = new Tstat(fid)
             {
-                Tag = (ushort)_tagQueue.Dequeue()
+                Tag = (ushort) _tagQueue.Dequeue()
             };
             _protocol.Write(request);
             var r = _protocol.Read();
             Rstat response;
             try
             {
-                response = (Rstat)r;
+                response = (Rstat) r;
             }
             catch (InvalidCastException)
             {
-                if (r.Type != (byte)MessageType.Rerror) throw new Exception("Unexpected Message Type");
-                var err = (Rerror)r;
-                throw new Exception($"Server Error: {err.Ename}");
+                if (r.Type != (byte) MessageType.Rerror) throw new UnexpectedMessageException(request.Type, r.Type);
+                var err = (Rerror) r;
+                throw new ServerErrorException(err.Ename);
             }
             if (response.Tag != request.Tag)
-                throw new Exception("Tag mismatch");
+                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return response.Stat;
         }
 
         public void Wstat(uint fid, Stat stat)
         {
-            var request = new Twstat(fid,stat)
+            var request = new Twstat(fid, stat)
             {
-                Tag = (ushort)_tagQueue.Dequeue()
+                Tag = (ushort) _tagQueue.Dequeue()
             };
             _protocol.Write(request);
             var r = _protocol.Read();
             Rwstat response;
             try
             {
-                response = (Rwstat)r;
+                response = (Rwstat) r;
             }
             catch (InvalidCastException)
             {
-                if (r.Type != (byte)MessageType.Rerror) throw new Exception("Unexpected Message Type");
-                var err = (Rerror)r;
-                throw new Exception($"Server Error: {err.Ename}");
+                if (r.Type != (byte) MessageType.Rerror) throw new UnexpectedMessageException(request.Type, r.Type);
+                var err = (Rerror) r;
+                throw new ServerErrorException(err.Ename);
             }
             if (response.Tag != request.Tag)
-                throw new Exception("Tag mismatch");
+                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
         }
 
@@ -323,23 +334,23 @@ namespace Win9P
         {
             var request = new Tflush(tag)
             {
-                Tag = (ushort)_tagQueue.Dequeue()
+                Tag = (ushort) _tagQueue.Dequeue()
             };
             _protocol.Write(request);
             var r = _protocol.Read();
             Rflush response;
             try
             {
-                response = (Rflush)r;
+                response = (Rflush) r;
             }
             catch (InvalidCastException)
             {
-                if (r.Type != (byte)MessageType.Rerror) throw new Exception("Unexpected Message Type");
-                var err = (Rerror)r;
-                throw new Exception($"Server Error: {err.Ename}");
+                if (r.Type != (byte) MessageType.Rerror) throw new UnexpectedMessageException(request.Type, r.Type);
+                var err = (Rerror) r;
+                throw new ServerErrorException(err.Ename);
             }
             if (response.Tag != request.Tag)
-                throw new Exception("Tag mismatch");
+                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             _tagQueue.Enqueue(tag);
         }

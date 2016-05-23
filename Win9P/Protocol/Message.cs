@@ -1,30 +1,29 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using System.Runtime.Remoting.Messaging;
 
 namespace Win9P.Protocol
 {
     public abstract class Message
     {
-        public uint Length { get; protected set; }
-        public byte Type { get; protected set; }
-        public ushort Tag { get; set; }
-
         protected Message(byte[] bytes)
         {
             Length = Protocol.readUInt(bytes, 0);
-            var offset = Protocol.BIT32SZ;
+            var offset = Constants.BIT32SZ;
 
             Type = bytes[offset];
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
 
             Tag = Protocol.readUShort(bytes, offset);
-            offset += Protocol.BIT16SZ;
+            offset += Constants.BIT16SZ;
         }
+
         protected Message()
         {
-            Length = Protocol.BIT32SZ + Protocol.BIT8SZ + Protocol.BIT16SZ;
+            Length = Constants.BIT32SZ + Constants.BIT8SZ + Constants.BIT16SZ;
         }
+
+        public uint Length { get; protected set; }
+        public byte Type { get; protected set; }
+        public ushort Tag { get; set; }
 
         public virtual byte[] ToBytes()
         {
@@ -32,10 +31,10 @@ namespace Win9P.Protocol
             var offset = Protocol.writeUint(bytes, Length, 0);
 
             bytes[offset] = Type;
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
 
             offset += Protocol.writeUshort(bytes, Tag, offset);
-            
+
             if (offset < Length)
             {
                 throw new Exception($"Buffer underflow. Len: {Length}, Offset: {offset}");

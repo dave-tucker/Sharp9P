@@ -1,30 +1,31 @@
 ﻿using System;
+using Win9P.Exceptions;
 
-namespace Win9P.Protocol
+namespace Win9P.Protocol.Messages
 {
-    public class Ropen : Message
+    public sealed class Ropen : Message
     {
-        public Qid Qid;
         public uint Iounit;
+        public Qid Qid;
 
         public Ropen(Qid qid, uint iounit)
         {
             Type = (byte) MessageType.Ropen;
             Qid = qid;
             Iounit = iounit;
-            Length += Protocol.QIDSZ + Protocol.BIT32SZ;
+            Length += Constants.QIDSZ + Constants.BIT32SZ;
         }
 
         public Ropen(byte[] bytes) : base(bytes)
         {
-            var offset = Protocol.HeaderOffset;
+            var offset = Constants.HeaderOffset;
             Qid = Protocol.readQid(bytes, offset);
-            offset += Protocol.QIDSZ;
+            offset += Constants.QIDSZ;
             Iounit = Protocol.readUInt(bytes, offset);
-            offset += Protocol.BIT32SZ;
+            offset += Constants.BIT32SZ;
             if (offset < Length)
             {
-                throw new Exception("Too much data");
+                throw new InsufficientDataException(Length, offset);
             }
         }
 
@@ -33,20 +34,20 @@ namespace Win9P.Protocol
             var bytes = new byte[Length];
             var offset = Protocol.writeUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
             offset += Protocol.writeUshort(bytes, Tag, offset);
 
             offset += Protocol.writeQid(bytes, Qid, offset);
             offset += Protocol.writeUint(bytes, Iounit, offset);
-   
+
             if (offset < Length)
             {
-                throw new Exception($"Buffer underflow. Len: {Length}, Offset: {offset}");
+               throw new InsufficientDataException(Length, offset);
             }
             return bytes;
         }
 
-        protected bool Equals(Ropen other)
+        private bool Equals(Ropen other)
         {
             return base.Equals(other) && Equals(Qid, other.Qid) && Iounit == other.Iounit;
         }

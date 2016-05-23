@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace Win9P.Protocol
+﻿namespace Win9P.Protocol.Messages
 {
-    public class Rremove : Message
+    public sealed class Rremove : Message
     {
         public Rremove()
         {
@@ -11,7 +9,6 @@ namespace Win9P.Protocol
 
         public Rremove(byte[] bytes) : base(bytes)
         {
-            
         }
     }
 }

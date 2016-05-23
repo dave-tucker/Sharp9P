@@ -1,32 +1,37 @@
 ﻿using System;
-using System.Diagnostics.Eventing;
+using Win9P.Exceptions;
 
-namespace Win9P.Protocol
+namespace Win9P.Protocol.Messages
 {
     public sealed class Tauth : Message
     {
-        public uint Afid { get; set; }
-        public string Uname { get; set; }
-        public string Aname { get; set; }
-
         public Tauth(uint afid, string uname, string aname)
         {
             Type = (byte) MessageType.Tauth;
             Afid = afid;
             Uname = uname;
             Aname = aname;
-            Length += Protocol.BIT32SZ + Protocol.GetStringLength(Uname) + Protocol.GetStringLength(Aname);
+            Length += Constants.BIT32SZ + Protocol.GetStringLength(Uname) + Protocol.GetStringLength(Aname);
         }
 
         public Tauth(byte[] bytes) : base(bytes)
         {
-            var offset = Protocol.HeaderOffset;
+            var offset = Constants.HeaderOffset;
             Afid = Protocol.readUInt(bytes, offset);
-            offset += Protocol.BIT32SZ;
+            offset += Constants.BIT32SZ;
             Uname = Protocol.readString(bytes, offset);
-            offset += (int)Protocol.GetStringLength(Uname);
+            offset += (int) Protocol.GetStringLength(Uname);
             Aname = Protocol.readString(bytes, offset);
+            offset += (int) Protocol.GetStringLength(Aname);
+            if (offset < Length)
+            {
+                throw new InsufficientDataException(Length, offset);
+            }
         }
+
+        public uint Afid { get; set; }
+        public string Uname { get; set; }
+        public string Aname { get; set; }
 
         public override byte[] ToBytes()
         {
@@ -34,7 +39,7 @@ namespace Win9P.Protocol
             var offset = Protocol.writeUint(bytes, Length, 0);
 
             bytes[offset] = Type;
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
 
             offset += Protocol.writeUshort(bytes, Tag, offset);
 
@@ -45,14 +50,15 @@ namespace Win9P.Protocol
 
             if (offset < Length)
             {
-                throw new Exception($"Buffer underflow. Len: {Length}, Offset: {offset}");
+                throw new InsufficientDataException(Length, offset);
             }
             return bytes;
         }
 
         private bool Equals(Tauth other)
         {
-            return base.Equals(other) && Afid == other.Afid && string.Equals(Uname, other.Uname) && string.Equals(Aname, other.Aname);
+            return base.Equals(other) && Afid == other.Afid && string.Equals(Uname, other.Uname) &&
+                   string.Equals(Aname, other.Aname);
         }
 
         public override bool Equals(object obj)
@@ -66,10 +72,10 @@ namespace Win9P.Protocol
         {
             unchecked
             {
-                int hashCode = base.GetHashCode();
+                var hashCode = base.GetHashCode();
                 hashCode = (hashCode*397) ^ (int) Afid;
-                hashCode = (hashCode*397) ^ (Uname != null ? Uname.GetHashCode() : 0);
-                hashCode = (hashCode*397) ^ (Aname != null ? Aname.GetHashCode() : 0);
+                hashCode = (hashCode*397) ^ (Uname?.GetHashCode() ?? 0);
+                hashCode = (hashCode*397) ^ (Aname?.GetHashCode() ?? 0);
                 return hashCode;
             }
         }

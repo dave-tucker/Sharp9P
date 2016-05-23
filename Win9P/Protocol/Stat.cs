@@ -5,19 +5,6 @@ namespace Win9P.Protocol
     // http://man.cat-v.org/plan_9/5/stat
     public class Stat
     {
-        public ushort Size { get; set; }
-        public ushort Type { get; set; }
-        public uint Dev { get; set; }
-        public Qid Qid { get; set; }
-        public uint Mode { get; set; }
-        public uint Atime { get; set; }
-        public uint Mtime { get; set; }
-        public ulong Length { get; set; }
-        public string Name { get; set; }
-        public string Uid { get; set; }
-        public string Gid { get; set; }
-        public string Muid { get; set; }
-
         public Stat(
             ushort type,
             uint dev,
@@ -42,48 +29,61 @@ namespace Win9P.Protocol
             Uid = uid;
             Gid = gid;
             Muid = muid;
-            Size = (ushort) (Protocol.BIT16SZ + Protocol.BIT16SZ +
-                Protocol.BIT32SZ + Protocol.QIDSZ +
-                Protocol.BIT32SZ + Protocol.BIT32SZ +
-                Protocol.BIT32SZ + Protocol.BIT64SZ +
-                Protocol.GetStringLength(Name) +
-                Protocol.GetStringLength(Uid) +
-                Protocol.GetStringLength(Gid) +
-                Protocol.GetStringLength(Muid));
+            Size = (ushort) (Constants.BIT16SZ + Constants.BIT16SZ +
+                             Constants.BIT32SZ + Constants.QIDSZ +
+                             Constants.BIT32SZ + Constants.BIT32SZ +
+                             Constants.BIT32SZ + Constants.BIT64SZ +
+                             Protocol.GetStringLength(Name) +
+                             Protocol.GetStringLength(Uid) +
+                             Protocol.GetStringLength(Gid) +
+                             Protocol.GetStringLength(Muid));
         }
 
         public Stat(byte[] bytes)
         {
             var offset = 0;
             Size = Protocol.readUShort(bytes, offset);
-            offset += Protocol.BIT16SZ;
+            offset += Constants.BIT16SZ;
             Type = Protocol.readUShort(bytes, offset);
-            offset += Protocol.BIT16SZ;
+            offset += Constants.BIT16SZ;
             Dev = Protocol.readUInt(bytes, offset);
-            offset += Protocol.BIT32SZ;
+            offset += Constants.BIT32SZ;
             Qid = Protocol.readQid(bytes, offset);
-            offset += Protocol.QIDSZ;
+            offset += Constants.QIDSZ;
             Mode = Protocol.readUInt(bytes, offset);
-            offset += Protocol.BIT32SZ;
+            offset += Constants.BIT32SZ;
             Atime = Protocol.readUInt(bytes, offset);
-            offset += Protocol.BIT32SZ;
+            offset += Constants.BIT32SZ;
             Mtime = Protocol.readUInt(bytes, offset);
-            offset += Protocol.BIT32SZ;
+            offset += Constants.BIT32SZ;
             Length = Protocol.readULong(bytes, offset);
-            offset += Protocol.BIT64SZ;
+            offset += Constants.BIT64SZ;
             Name = Protocol.readString(bytes, offset);
-            offset += (int)Protocol.GetStringLength(Name);
+            offset += (int) Protocol.GetStringLength(Name);
             Uid = Protocol.readString(bytes, offset);
-            offset += (int)Protocol.GetStringLength(Uid);
+            offset += (int) Protocol.GetStringLength(Uid);
             Gid = Protocol.readString(bytes, offset);
-            offset += (int)Protocol.GetStringLength(Gid);
+            offset += (int) Protocol.GetStringLength(Gid);
             Muid = Protocol.readString(bytes, offset);
-            offset += (int)Protocol.GetStringLength(Muid);
+            offset += (int) Protocol.GetStringLength(Muid);
             if (offset < Size)
             {
                 throw new Exception("Too much data");
             }
         }
+
+        public ushort Size { get; set; }
+        public ushort Type { get; set; }
+        public uint Dev { get; set; }
+        public Qid Qid { get; set; }
+        public uint Mode { get; set; }
+        public uint Atime { get; set; }
+        public uint Mtime { get; set; }
+        public ulong Length { get; set; }
+        public string Name { get; set; }
+        public string Uid { get; set; }
+        public string Gid { get; set; }
+        public string Muid { get; set; }
 
         public byte[] ToBytes()
         {
@@ -102,7 +102,7 @@ namespace Win9P.Protocol
             offset += Protocol.writeString(bytes, Uid, offset);
             offset += Protocol.writeString(bytes, Gid, offset);
             offset += Protocol.writeString(bytes, Muid, offset);
-            
+
             if (offset < Size)
             {
                 throw new Exception($"Buffer underflow. Len: {Size}, Offset: {offset}");
@@ -112,14 +112,17 @@ namespace Win9P.Protocol
 
         protected bool Equals(Stat other)
         {
-            return Size == other.Size && Type == other.Type && Dev == other.Dev && Equals(Qid, other.Qid) && Mode == other.Mode && Atime == other.Atime && Mtime == other.Mtime && Length == other.Length && string.Equals(Name, other.Name) && string.Equals(Uid, other.Uid) && string.Equals(Gid, other.Gid) && string.Equals(Muid, other.Muid);
+            return Size == other.Size && Type == other.Type && Dev == other.Dev && Equals(Qid, other.Qid) &&
+                   Mode == other.Mode && Atime == other.Atime && Mtime == other.Mtime && Length == other.Length &&
+                   string.Equals(Name, other.Name) && string.Equals(Uid, other.Uid) && string.Equals(Gid, other.Gid) &&
+                   string.Equals(Muid, other.Muid);
         }
 
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((Stat) obj);
         }
 

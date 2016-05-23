@@ -1,47 +1,48 @@
 ﻿using System;
+using Win9P.Exceptions;
 
-namespace Win9P.Protocol
+namespace Win9P.Protocol.Messages
 {
-    public class Rwrite : Message
+    public sealed class Rwrite : Message
     {
-        public uint Count { get; set; }
-
         public Rwrite(uint count)
         {
             Type = (byte) MessageType.Rwrite;
             Count = count;
-            Length += Protocol.BIT32SZ;
+            Length += Constants.BIT32SZ;
         }
 
         public Rwrite(byte[] bytes) : base(bytes)
         {
-            var offset = Protocol.HeaderOffset;
+            var offset = Constants.HeaderOffset;
             Count = Protocol.readUInt(bytes, offset);
-            offset += Protocol.BIT32SZ;
+            offset += Constants.BIT32SZ;
             if (offset < Length)
             {
-                throw new Exception("Too much data");
+                throw new InsufficientDataException(Length, offset);
             }
         }
+
+        public uint Count { get; set; }
 
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
             var offset = Protocol.writeUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
             offset += Protocol.writeUshort(bytes, Tag, offset);
 
             offset += Protocol.writeUint(bytes, Count, offset);
 
-            if (offset < Length)
+            if (Length < offset)
             {
-                throw new Exception($"Buffer underflow. Len: {Length}, Offset: {offset}");
+                throw new InsufficientDataException(Length, offset);
             }
             return bytes;
         }
 
-        protected bool Equals(Rwrite other)
+        private bool Equals(Rwrite other)
         {
             return base.Equals(other) && Count == other.Count;
         }

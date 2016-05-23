@@ -1,42 +1,14 @@
 ﻿using System;
 using System.IO;
-using System.Security.Cryptography;
 using System.Text;
+using Win9P.Protocol.Messages;
 
 namespace Win9P.Protocol
 {
-    class Protocol
+    public class Protocol
     {
-        internal const int BIT8SZ = 1;
-        internal const int BIT16SZ = 2;
-        internal const int BIT32SZ = 4;
-        internal const int BIT64SZ = 8;
-
-        internal const int HeaderOffset = 7;
-
-        internal const int QIDSZ = BIT8SZ + BIT32SZ + BIT64SZ;
-
-        internal const ushort NoTag = 0;
-        public const uint NoFid = 0;
-        internal const int NOUID = -1;
-        internal const int IODHDRSIZE = 24;
-
-        internal const int MAXWELEM = 16;
-        internal const int STATFIXLEN = (BIT16SZ + QIDSZ + 5*BIT16SZ + 4*BIT32SZ + BIT64SZ);
-   
-        private const int MAXPKTSIZE = 8192;
-        private const int IOHDRSIZE = (BIT8SZ + BIT16SZ + 3*BIT32SZ + BIT64SZ);
-
-        private const uint DMDIR = 0x80000000;
-        private const uint DMAPPEND = 0x40000000;
-        private const uint DMEXCL = 0x20000000;
-        private const uint DMMOUNT = 0x10000000;
-        private const uint DMAUTH = 0x08000000;
-        private const uint DMTMP = 0x04000000;
-        private const uint DMNONE = 0xFC000000;
-        
-        private Stream _stream;
-        private int _msize = 8192;
+        private readonly Stream _stream;
+        private readonly int _msize = 8192;
 
         public Protocol(Stream stream)
         {
@@ -74,16 +46,16 @@ namespace Win9P.Protocol
             var utf8 = new UTF8Encoding();
             var len = readUShort(data, offset);
             Console.WriteLine($"String Length: {len}, Offset: {offset}");
-            offset += BIT16SZ;
-            var strdata = new char[utf8.GetCharCount(data, offset, (int) len)];
-            utf8.GetChars(data, offset, (int) len, strdata, 0);
+            offset += Constants.BIT16SZ;
+            var strdata = new char[utf8.GetCharCount(data, offset, len)];
+            utf8.GetChars(data, offset, len, strdata, 0);
             return new string(strdata);
         }
 
         internal static Qid readQid(byte[] bytes, int offset)
         {
-            var b = new byte[QIDSZ];
-            Array.Copy(bytes, offset, b, 0, QIDSZ);
+            var b = new byte[Constants.QIDSZ];
+            Array.Copy(bytes, offset, b, 0, Constants.QIDSZ);
             return new Qid(b);
         }
 
@@ -98,17 +70,17 @@ namespace Win9P.Protocol
         private byte[] readMessage()
         {
             // Read length uint
-            var length = readBytes(BIT32SZ);
-            var pktlen = readUInt(length,0);
-            if (pktlen - BIT32SZ > _msize)
+            var length = readBytes(Constants.BIT32SZ);
+            var pktlen = readUInt(length, 0);
+            if (pktlen - Constants.BIT32SZ > _msize)
                 throw new Exception("Message too large!");
 
             // Read the remainder of the packet (minus the uint length)
-            var data = readBytes((int)pktlen - BIT32SZ);
+            var data = readBytes((int) pktlen - Constants.BIT32SZ);
 
             var pkt = new byte[pktlen];
             length.CopyTo(pkt, 0);
-            data.CopyTo(pkt, BIT32SZ);
+            data.CopyTo(pkt, Constants.BIT32SZ);
             return pkt;
         }
 
@@ -116,7 +88,7 @@ namespace Win9P.Protocol
         {
             Message message;
             var bytes = readMessage();
-            var offset = BIT32SZ;
+            var offset = Constants.BIT32SZ;
             var type = bytes[offset];
             switch (type)
             {
@@ -132,10 +104,10 @@ namespace Win9P.Protocol
                 case (byte) MessageType.Rauth:
                     message = new Rauth(bytes);
                     break;
-                case (byte)MessageType.Tattach:
+                case (byte) MessageType.Tattach:
                     message = new Tattach(bytes);
                     break;
-                case (byte)MessageType.Rattach:
+                case (byte) MessageType.Rattach:
                     message = new Rattach(bytes);
                     break;
                 case (byte) MessageType.Rerror:
@@ -211,40 +183,40 @@ namespace Win9P.Protocol
         {
             var bytes = BitConverter.GetBytes(var);
             Array.Copy(bytes, 0, data, offset, bytes.Length);
-            return BIT64SZ;
+            return Constants.BIT64SZ;
         }
 
         internal static int writeUint(byte[] data, uint var, int offset)
         {
             var bytes = BitConverter.GetBytes(var);
             Array.Copy(bytes, 0, data, offset, bytes.Length);
-            return BIT32SZ;
+            return Constants.BIT32SZ;
         }
 
         internal static int writeUshort(byte[] data, ushort var, int offset)
         {
             var bytes = BitConverter.GetBytes(var);
             Array.Copy(bytes, 0, data, offset, bytes.Length);
-            return BIT16SZ;
+            return Constants.BIT16SZ;
         }
 
         internal static int writeString(byte[] data, string var, int offset)
         {
             var utf8 = new UTF8Encoding();
 
-            writeUshort(data, (ushort)var.Length, offset);
-            offset += BIT16SZ;
+            writeUshort(data, (ushort) var.Length, offset);
+            offset += Constants.BIT16SZ;
 
             var bytes = utf8.GetBytes(var);
             Array.Copy(bytes, 0, data, offset, utf8.GetByteCount(var));
-            return BIT16SZ + utf8.GetByteCount(var);
+            return Constants.BIT16SZ + utf8.GetByteCount(var);
         }
 
         internal static int writeQid(byte[] data, Qid qid, int offset)
         {
             var bytes = qid.ToBytes();
-            Array.Copy(bytes, 0, data, offset, QIDSZ);
-            return QIDSZ;
+            Array.Copy(bytes, 0, data, offset, Constants.QIDSZ);
+            return Constants.QIDSZ;
         }
 
         internal static int writeStat(byte[] data, Stat stat, int offset)
@@ -258,13 +230,13 @@ namespace Win9P.Protocol
         internal static uint GetStringLength(string var)
         {
             var utf8 = new UTF8Encoding();
-            return (uint)(BIT16SZ + utf8.GetByteCount(var));
+            return (uint) (Constants.BIT16SZ + utf8.GetByteCount(var));
         }
 
         public void Write(Message message)
         {
             var bytes = message.ToBytes();
-            _stream.Write(bytes,0,bytes.Length);
+            _stream.Write(bytes, 0, bytes.Length);
             _stream.Flush();
         }
     }

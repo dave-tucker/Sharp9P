@@ -1,43 +1,44 @@
 ﻿using System;
+using Win9P.Exceptions;
 
-namespace Win9P.Protocol
+namespace Win9P.Protocol.Messages
 {
     public sealed class Rwalk : Message
     {
-        public ushort Nwqid { get; set; }
-        public Qid[] Wqid { get; set; }
-
         public Rwalk(ushort nwqid, Qid[] wqid)
         {
             Type = (byte) MessageType.Rwalk;
             Nwqid = nwqid;
             Wqid = wqid;
-            Length += Protocol.BIT16SZ + (Nwqid * (uint)Protocol.QIDSZ);
+            Length += Constants.BIT16SZ + Nwqid*(uint) Constants.QIDSZ;
         }
 
         public Rwalk(byte[] bytes) : base(bytes)
         {
-            var offset = Protocol.HeaderOffset;
+            var offset = Constants.HeaderOffset;
             Nwqid = Protocol.readUShort(bytes, offset);
-            offset += Protocol.BIT16SZ;
+            offset += Constants.BIT16SZ;
             Wqid = new Qid[Nwqid];
             for (var i = 0; i < Nwqid; i++)
             {
                 Wqid[i] = Protocol.readQid(bytes, offset);
-                offset += Protocol.QIDSZ;
+                offset += Constants.QIDSZ;
             }
             if (offset < Length)
             {
-                throw new Exception("Too much data");
+                throw new InsufficientDataException(Length, offset);
             }
         }
+
+        public ushort Nwqid { get; set; }
+        public Qid[] Wqid { get; set; }
 
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
             var offset = Protocol.writeUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
             offset += Protocol.writeUshort(bytes, Tag, offset);
             offset += Protocol.writeUshort(bytes, Nwqid, offset);
             foreach (var qid in Wqid)
@@ -46,7 +47,7 @@ namespace Win9P.Protocol
             }
             if (offset < Length)
             {
-                throw new Exception($"Buffer underflow. Len: {Length}, Offset: {offset}");
+                throw new InsufficientDataException(Length, offset);
             }
             return bytes;
         }

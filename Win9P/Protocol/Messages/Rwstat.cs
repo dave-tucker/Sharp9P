@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace Win9P.Protocol
+﻿namespace Win9P.Protocol.Messages
 {
-    public class Rwstat : Message
+    public sealed class Rwstat : Message
     {
         public Rwstat()
         {
@@ -11,7 +9,6 @@ namespace Win9P.Protocol
 
         public Rwstat(byte[] bytes) : base(bytes)
         {
-            
         }
     }
 }

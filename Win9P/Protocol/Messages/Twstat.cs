@@ -1,39 +1,39 @@
-﻿using System;
+﻿using Win9P.Exceptions;
 
-namespace Win9P.Protocol
+namespace Win9P.Protocol.Messages
 {
     public class Twstat : Message
     {
-        public uint Fid { get; set; }
-        public Stat Stat { get; set; }
-
         public Twstat(uint fid, Stat stat)
         {
-            Type = (byte)MessageType.Twstat;
+            Type = (byte) MessageType.Twstat;
             Fid = fid;
             Stat = stat;
-            Length += Protocol.BIT32SZ + (uint)Stat.Size;
+            Length += Constants.BIT32SZ + (uint) Stat.Size;
         }
 
         public Twstat(byte[] bytes) : base(bytes)
         {
-            var offset = Protocol.HeaderOffset;
+            var offset = Constants.HeaderOffset;
             Fid = Protocol.readUInt(bytes, offset);
-            offset += Protocol.BIT32SZ;
+            offset += Constants.BIT32SZ;
             Stat = Protocol.readStat(bytes, offset);
             offset += Stat.Size;
             if (offset < Length)
             {
-                throw new Exception("Too much data");
+                throw new InsufficientDataException(Length, offset);
             }
         }
+
+        public uint Fid { get; set; }
+        public Stat Stat { get; set; }
 
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
             var offset = Protocol.writeUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
             offset += Protocol.writeUshort(bytes, Tag, offset);
 
             offset += Protocol.writeUint(bytes, Fid, offset);
@@ -41,7 +41,7 @@ namespace Win9P.Protocol
 
             if (offset < Length)
             {
-                throw new Exception($"Buffer underflow. Len: {Length}, Offset: {offset}");
+                throw new InsufficientDataException(Length, offset);
             }
             return bytes;
         }
@@ -55,17 +55,16 @@ namespace Win9P.Protocol
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((Twstat) obj);
+            return obj.GetType() == GetType() && Equals((Twstat) obj);
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                int hashCode = base.GetHashCode();
+                var hashCode = base.GetHashCode();
                 hashCode = (hashCode*397) ^ (int) Fid;
-                hashCode = (hashCode*397) ^ (Stat != null ? Stat.GetHashCode() : 0);
+                hashCode = (hashCode*397) ^ (Stat?.GetHashCode() ?? 0);
                 return hashCode;
             }
         }

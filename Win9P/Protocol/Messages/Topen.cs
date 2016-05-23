@@ -1,54 +1,54 @@
 ﻿using System;
+using Win9P.Exceptions;
 
-namespace Win9P.Protocol
+namespace Win9P.Protocol.Messages
 {
-    public class Topen : Message
+    public sealed class Topen : Message
     {
-       
-        public uint Fid { get; set; }
-        public byte Mode { get; set; }
-
         public Topen(uint fid, byte mode)
         {
             Type = (byte) MessageType.Topen;
             Fid = fid;
             Mode = mode;
-            Length += Protocol.BIT32SZ + Protocol.BIT8SZ;
+            Length += Constants.BIT32SZ + Constants.BIT8SZ;
         }
 
         public Topen(byte[] bytes) : base(bytes)
         {
-            var offset = Protocol.HeaderOffset;
+            var offset = Constants.HeaderOffset;
             Fid = Protocol.readUInt(bytes, offset);
-            offset += Protocol.BIT32SZ;
+            offset += Constants.BIT32SZ;
             Mode = bytes[offset];
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
             if (offset < Length)
             {
-                throw new Exception("Too much data");
+                throw new InsufficientDataException(Length, offset);
             }
         }
+
+        public uint Fid { get; set; }
+        public byte Mode { get; set; }
 
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
             var offset = Protocol.writeUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
             offset += Protocol.writeUshort(bytes, Tag, offset);
 
             offset += Protocol.writeUint(bytes, Fid, offset);
             bytes[offset] = Mode;
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
 
             if (offset < Length)
             {
-                throw new Exception($"Buffer underflow. Len: {Length}, Offset: {offset}");
+                throw new InsufficientDataException(Length, offset);
             }
             return bytes;
         }
 
-        protected bool Equals(Topen other)
+        private bool Equals(Topen other)
         {
             return base.Equals(other) && Fid == other.Fid && Mode == other.Mode;
         }
@@ -64,7 +64,7 @@ namespace Win9P.Protocol
         {
             unchecked
             {
-                int hashCode = base.GetHashCode();
+                var hashCode = base.GetHashCode();
                 hashCode = (hashCode*397) ^ (int) Fid;
                 hashCode = (hashCode*397) ^ Mode.GetHashCode();
                 return hashCode;

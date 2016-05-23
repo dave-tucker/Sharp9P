@@ -1,11 +1,10 @@
 ﻿using System;
+using Win9P.Exceptions;
 
-namespace Win9P.Protocol
+namespace Win9P.Protocol.Messages
 {
     public sealed class Rerror : Message
     {
-        public string Ename { get; set; }
-
         public Rerror(string ename)
         {
             Type = (byte) MessageType.Rerror;
@@ -15,26 +14,28 @@ namespace Win9P.Protocol
 
         public Rerror(byte[] bytes) : base(bytes)
         {
-            var offset = Protocol.HeaderOffset;
+            var offset = Constants.HeaderOffset;
             Ename = Protocol.readString(bytes, offset);
-            offset += (int)Protocol.GetStringLength(Ename);
+            offset += (int) Protocol.GetStringLength(Ename);
             if (offset < Length)
             {
-                throw new Exception("Too much data");
+                throw new InsufficientDataException(Length, offset);
             }
         }
+
+        public string Ename { get; set; }
 
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
             var offset = Protocol.writeUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
             offset += Protocol.writeUshort(bytes, Tag, offset);
             offset += Protocol.writeString(bytes, Ename, offset);
             if (offset < Length)
             {
-                throw new Exception($"Buffer underflow. Len: {Length}, Offset: {offset}");
+                throw new InsufficientDataException(Length, offset);
             }
             return bytes;
         }

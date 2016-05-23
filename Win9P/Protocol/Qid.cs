@@ -1,24 +1,12 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 
 namespace Win9P.Protocol
 {
-    public enum QidType
-    {
-        QTDIR  = 0x80, // type bit for directories
-        QTAPPEND = 0x40, // type bit for append only files
-        QTEXCL = 0x20, // type bit for exclusive use files
-        QTMOUNT = 0x10, // type bit for mounted channel
-        QTAUTH = 0x08, // type bit for authentication file
-        QTTMP = 0x04, // type bit for not-backed-up file
-        QTFILE = 0x00, // plain file
-    }
-
     public class Qid
     {
+        public readonly ulong Path;
         public readonly byte Type;
         public readonly uint Vers;
-        public readonly ulong Path;
 
         public Qid(byte type, uint vers, ulong path)
         {
@@ -31,24 +19,24 @@ namespace Win9P.Protocol
         {
             var offset = 0;
             Type = bytes[offset];
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
             Vers = Protocol.readUInt(bytes, offset);
-            offset += Protocol.BIT32SZ;
+            offset += Constants.BIT32SZ;
             Path = Protocol.readULong(bytes, offset);
         }
 
         public byte[] ToBytes()
         {
-            var bytes = new byte[Protocol.QIDSZ];
+            var bytes = new byte[Constants.QIDSZ];
             var offset = 0;
             bytes[offset] = Type;
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
             offset += Protocol.writeUint(bytes, Vers, offset);
             offset += Protocol.writeUlong(bytes, Path, offset);
 
-            if (offset < Protocol.QIDSZ)
+            if (offset < Constants.QIDSZ)
             {
-                throw new Exception($"Buffer underflow. Len: {Protocol.QIDSZ}, Offset: {offset}");
+                throw new Exception($"Buffer underflow. Len: {Constants.QIDSZ}, Offset: {offset}");
             }
             return bytes;
         }

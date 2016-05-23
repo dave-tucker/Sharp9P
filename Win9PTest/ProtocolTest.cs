@@ -2,7 +2,9 @@
 using System.IO;
 using System.Text;
 using NUnit.Framework;
+using Win9P;
 using Win9P.Protocol;
+using Win9P.Protocol.Messages;
 
 namespace Win9PTest
 {
@@ -68,7 +70,7 @@ namespace Win9PTest
         public void TestReadWriteTauth()
         {
             var stream = new MemoryStream();
-            var message = new Tauth(Protocol.NoFid, "user", "tree")
+            var message = new Tauth(Constants.NoFid, "user", "tree")
             {
                 Tag = 1234,
             };

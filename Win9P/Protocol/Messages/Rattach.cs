@@ -1,43 +1,43 @@
 ﻿using System;
-using System.Diagnostics;
+using Win9P.Exceptions;
 
-namespace Win9P.Protocol
+namespace Win9P.Protocol.Messages
 {
     public sealed class Rattach : Message
     {
-        public Qid Qid { get; set; }
-
         public Rattach(Qid qid)
         {
             Type = (byte) MessageType.Rattach;
             Qid = qid;
-            Length += Protocol.QIDSZ;
+            Length += Constants.QIDSZ;
         }
 
         public Rattach(byte[] bytes) : base(bytes)
         {
-            var offset = Protocol.HeaderOffset;
+            var offset = Constants.HeaderOffset;
             Qid = Protocol.readQid(bytes, offset);
-            offset += Protocol.QIDSZ;
+            offset += Constants.QIDSZ;
             if (offset < Length)
             {
-                throw new Exception("Too much data");
+                throw new InsufficientDataException(Length,offset);
             }
         }
+
+        public Qid Qid { get; set; }
 
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
             var offset = Protocol.writeUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
             offset += Protocol.writeUshort(bytes, Tag, offset);
 
             offset += Protocol.writeQid(bytes, Qid, offset);
 
             if (offset < Length)
             {
-                throw new Exception($"Buffer underflow. Len: {Length}, Offset: {offset}");
+                throw new InsufficientDataException(Length, offset);
             }
             return bytes;
         }

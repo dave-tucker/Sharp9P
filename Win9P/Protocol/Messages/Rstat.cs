@@ -1,11 +1,10 @@
 ﻿using System;
+using Win9P.Exceptions;
 
-namespace Win9P.Protocol
+namespace Win9P.Protocol.Messages
 {
-    public class Rstat : Message
+    public sealed class Rstat : Message
     {
-        public Stat Stat { get; set; }
-
         public Rstat(Stat stat)
         {
             Type = (byte) MessageType.Rstat;
@@ -15,33 +14,35 @@ namespace Win9P.Protocol
 
         public Rstat(byte[] bytes) : base(bytes)
         {
-            var offset = Protocol.HeaderOffset;
+            var offset = Constants.HeaderOffset;
             Stat = Protocol.readStat(bytes, offset);
             offset += Stat.Size;
             if (offset < Length)
             {
-                throw new Exception("Too much data");
+                throw new InsufficientDataException(Length, offset);
             }
         }
+
+        public Stat Stat { get; set; }
 
         public override byte[] ToBytes()
         {
             var bytes = new byte[Length];
             var offset = Protocol.writeUint(bytes, Length, 0);
             bytes[offset] = Type;
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
             offset += Protocol.writeUshort(bytes, Tag, offset);
 
             offset += Protocol.writeStat(bytes, Stat, offset);
 
             if (offset < Length)
             {
-                throw new Exception($"Buffer underflow. Len: {Length}, Offset: {offset}");
+                throw new InsufficientDataException(Length, offset);
             }
             return bytes;
         }
 
-        protected bool Equals(Rstat other)
+        private bool Equals(Rstat other)
         {
             return base.Equals(other) && Equals(Stat, other.Stat);
         }
@@ -50,7 +51,7 @@ namespace Win9P.Protocol
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((Rstat) obj);
         }
 

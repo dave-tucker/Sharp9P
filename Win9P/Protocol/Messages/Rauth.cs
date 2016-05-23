@@ -1,22 +1,29 @@
 ﻿using System;
+using Win9P.Exceptions;
 
-namespace Win9P.Protocol
+namespace Win9P.Protocol.Messages
 {
-    public class Rauth : Message
+    public sealed class Rauth : Message
     {
-        public Qid Aqid { get; set; }
-
         public Rauth(Qid aqid)
         {
             Type = (byte) MessageType.Rauth;
             Aqid = aqid;
-            Length += Protocol.QIDSZ;
+            Length += Constants.QIDSZ;
         }
 
         public Rauth(byte[] bytes) : base(bytes)
         {
-            Aqid = Protocol.readQid(bytes, Protocol.HeaderOffset);
+            var offset = Constants.HeaderOffset;
+            Aqid = Protocol.readQid(bytes, Constants.HeaderOffset);
+            offset += Constants.QIDSZ;
+            if (offset < Length)
+            {
+                throw new InsufficientDataException(Length, offset);
+            }
         }
+
+        public Qid Aqid { get; set; }
 
         public override byte[] ToBytes()
         {
@@ -24,7 +31,7 @@ namespace Win9P.Protocol
             var offset = Protocol.writeUint(bytes, Length, 0);
 
             bytes[offset] = Type;
-            offset += Protocol.BIT8SZ;
+            offset += Constants.BIT8SZ;
 
             offset += Protocol.writeUshort(bytes, Tag, offset);
 
@@ -32,12 +39,12 @@ namespace Win9P.Protocol
 
             if (offset < Length)
             {
-                throw new Exception($"Buffer underflow. Len: {Length}, Offset: {offset}");
+                throw new InsufficientDataException(Length, offset);
             }
             return bytes;
         }
 
-        protected bool Equals(Rauth other)
+        private bool Equals(Rauth other)
         {
             return base.Equals(other) && Equals(Aqid, other.Aqid);
         }
@@ -46,7 +53,7 @@ namespace Win9P.Protocol
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            return obj.GetType() == this.GetType() && Equals((Rauth) obj);
+            return obj.GetType() == GetType() && Equals((Rauth) obj);
         }
 
         public override int GetHashCode()
