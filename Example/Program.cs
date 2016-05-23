@@ -7,6 +7,7 @@ using Sharp9P;
 
 namespace w9p
 {
+     /* A sample client for talking to Datakit. http:\\github.com\docker\datakit */
     internal class Program
     {
         private const uint Rwx = Constants.Dmread | Constants.Dmwrite | Constants.Dmexec;
@@ -34,8 +35,8 @@ namespace w9p
             _client.Version(Constants.DefaultMsize, Constants.DefaultVersion);
             Console.WriteLine("Attaching...\n");
             _client.Attach(Constants.RootFid, Constants.NoFid, "Dave", "/");
-            Mkdir(new[] {"branch", "master", "transactions", "test", "rw", "com.docker.driver.amd64-linux"});
-            Create(new[] {"branch", "master", "transactions", "test", "rw", "com.docker.driver.amd64-linux", "network"});
+            Mkdir(new[] {"branch", "master", "transactions", "test", "rw", "foo"});
+            Create(new[] {"branch", "master", "transactions", "test", "rw", "foo", "bar"});
             Commit(new[] {"branch", "master", "transactions", "test", "ctl"});
         }
 
@@ -63,7 +64,7 @@ namespace w9p
             var fid = _client.AllocateFid(Constants.RootFid);
             var dirs = path.Take(path.Length - 1).ToArray();
             var utf8 = new UTF8Encoding();
-            const string value = "hybrid";
+            const string value = "baz";
             _client.Walk(fid, fid, dirs);
             _client.Create(fid, path.Last(), FilePerm, Constants.Ordwr);
             _client.Write(fid, 0, (uint) utf8.GetByteCount(value), utf8.GetBytes(value));

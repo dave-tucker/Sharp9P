@@ -50,7 +50,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Win9P\Sharp9P.csproj">
+    <ProjectReference Include="..\Sharp9P\Sharp9P.csproj">
       <Project>{12dd4614-0f72-4deb-a9d1-37d825b9a07b}</Project>
       <Name>Sharp9P</Name>
     </ProjectReference>
