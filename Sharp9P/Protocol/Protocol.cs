@@ -45,7 +45,6 @@ namespace Sharp9P.Protocol
         {
             var utf8 = new UTF8Encoding();
             var len = ReadUShort(data, offset);
-            Console.WriteLine($"String Length: {len}, Offset: {offset}");
             offset += Constants.Bit16Sz;
             var strdata = new char[utf8.GetCharCount(data, offset, len)];
             utf8.GetChars(data, offset, len, strdata, 0);
