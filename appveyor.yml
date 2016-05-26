@@ -19,4 +19,5 @@ artifacts:
   - path: build\Sharp9P.pdb
   - path: packaging\*.nupkg
   
+test: off
 deploy: off
