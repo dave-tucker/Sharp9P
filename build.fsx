@@ -20,7 +20,7 @@ let description = "A 9P Client/Server Library written in C#"
 let summary = description
 let company = "Docker"
 let copyright = "Copyright © Docker, Inc. 2016"
-let versionBase = "0.1.0"
+let versionBase = "0.1.1"
 let buildNumber = environVarOrDefault "APPVEYOR_BUILD_NUMBER" "9999"
 let version = sprintf "%s.%s" versionBase buildNumber
 let commitHash = Information.getCurrentHash()
@@ -70,10 +70,11 @@ Target "TestApp" (fun _ ->
 )
 
 Target "PackageApp" (fun _ ->
-  CopyFiles packagingDir [ (buildDir @@ "Sharp9P.dll")
-                           (buildDir @@ "Sharp9P.pdb")
-                           "LICENSE"
+  let net45Dir = packagingDir @@ "lib/net45/"
+  CopyFiles net45Dir [ (buildDir @@ "Sharp9P.dll")
+                       (buildDir @@ "Sharp9P.pdb")
   ]
+  CopyFile packagingDir "LICENSE"
   NuGet (fun p -> 
     {p with
       Files = [
@@ -88,7 +89,9 @@ Target "PackageApp" (fun _ ->
       WorkingDir = packagingDir
       Version = version
       AccessKey = accessKey
-      Publish = push })
+      Publish = push
+      PublishUrl = "https://api.nuget.org/v3/index.json"
+      })
       "Sharp9P.nuspec"
 )
 

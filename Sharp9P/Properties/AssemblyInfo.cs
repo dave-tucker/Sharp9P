@@ -9,12 +9,12 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompanyAttribute("Docker")]
 [assembly: AssemblyCopyrightAttribute("Copyright © Docker, Inc. 2016")]
 [assembly: InternalsVisibleToAttribute("Sharp9PTest")]
-[assembly: AssemblyVersionAttribute("0.1.0.9999")]
-[assembly: AssemblyFileVersionAttribute("0.1.0.9999")]
-[assembly: AssemblyMetadataAttribute("githash","ef17fe")]
+[assembly: AssemblyVersionAttribute("0.1.1.9999")]
+[assembly: AssemblyFileVersionAttribute("0.1.1.9999")]
+[assembly: AssemblyMetadataAttribute("githash","cdf477")]
 namespace System {
     internal static class AssemblyVersionInformation {
-        internal const string Version = "0.1.0.9999";
-        internal const string InformationalVersion = "0.1.0.9999";
+        internal const string Version = "0.1.1.9999";
+        internal const string InformationalVersion = "0.1.1.9999";
     }
 }
