@@ -3,6 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{59826912-8796-4246-ACE2-B9EB816BFCEE}"
+	ProjectSection(SolutionItems) = preProject
+		paket.dependencies = paket.dependencies
+	EndProjectSection
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharp9PTest", "Sharp9PTest\Sharp9PTest.csproj", "{EFD6AAAB-707C-437C-B5F3-59990276D7A3}"
 	ProjectSection(ProjectDependencies) = postProject
 		{12DD4614-0F72-4DEB-A9D1-37D825B9A07B} = {12DD4614-0F72-4DEB-A9D1-37D825B9A07B}
@@ -11,6 +16,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharp9P", "Sharp9P\Sharp9P.csproj", "{12DD4614-0F72-4DEB-A9D1-37D825B9A07B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Example\Example.csproj", "{D3BC593E-9539-4BFD-BE80-87CE1DF87048}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{894FF022-B146-4ADB-92A6-3B9EBD88D9BD}"
+	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
+		build.bat = build.bat
+		build.fsx = build.fsx
+		paket.dependencies = paket.dependencies
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

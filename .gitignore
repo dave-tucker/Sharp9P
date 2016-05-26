@@ -228,7 +228,7 @@ FakesAssemblies/
 
 # Visual Studio LightSwitch build output
 **/*.HTMLClient/GeneratedArtifacts
-**/*.DesktopClient/GeneratedArtifacts
+**/*.DesktopClient/GeneratedArtifact
 **/*.DesktopClient/ModelManifest.xml
 **/*.Server/GeneratedArtifacts
 **/*.Server/ModelManifest.xml
@@ -243,3 +243,8 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+
+# Build and Test dirs
+build/
+test/
+packaging/

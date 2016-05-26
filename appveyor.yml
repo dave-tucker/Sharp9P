@@ -1,19 +1,22 @@
-version: 1.0.{build}
+version: '{build}'
 
-before_build:
-  - nuget restore
+pull_requests:
+  do_not_increment_build_number: true
 
-build:
-  project: Sharp9P.sln
+environment:
+  NUGET_API_KEY:
+    secure: Wer0Q76HZrLMMVewwxg4HEIHGsBwAgmecbRYgD4dedxC96Ektuj2ftrfWMTCVgzF
 
-cache:
-  - packages -> **\packages.config
-  
-configuration:
-  - Release
-  - Debug
-  
-platform: Any CPU
+nuget:
+  project_feed: true
+  disable_publish_on_pr: true
+
+build_script:
+  - ps: ./build.bat
 
 artifacts:
-  - path: Sharp9P\bin\$(configuration)\Sharp9P.dll
+  - path: build\Sharp9P.dll
+  - path: build\Sharp9P.pdb
+  - path: packaging\*.nupkg
+  
+deploy: off
