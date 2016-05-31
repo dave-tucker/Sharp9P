@@ -2,7 +2,7 @@ NUGET
   remote: https://www.nuget.org/api/v2
   specs:
     FAKE (4.27)
-    NUnit (3.2.1) - framework: >= net452
+    NUnit (3.2.1)
     NUnit.ConsoleRunner (3.2.1)
     NUnit.Extension.NUnitProjectLoader (3.2.1)
     NUnit.Extension.NUnitV2Driver (3.2.1)

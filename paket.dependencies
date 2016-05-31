@@ -1,5 +1,5 @@
 source https://nuget.org/api/v2
 
 nuget FAKE
-nuget NUnit 3.2.1 framework: >= net452
+nuget NUnit 3.2.1
 nuget Nunit.Runners

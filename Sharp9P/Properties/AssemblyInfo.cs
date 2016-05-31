@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleToAttribute("Sharp9PTest")]
 [assembly: AssemblyVersionAttribute("0.1.1.9999")]
 [assembly: AssemblyFileVersionAttribute("0.1.1.9999")]
-[assembly: AssemblyMetadataAttribute("githash","cdf477")]
+[assembly: AssemblyMetadataAttribute("githash","c432dd")]
 namespace System {
     internal static class AssemblyVersionInformation {
         internal const string Version = "0.1.1.9999";
