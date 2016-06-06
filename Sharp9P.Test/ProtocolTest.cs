@@ -2,11 +2,10 @@
 using System.IO;
 using System.Text;
 using NUnit.Framework;
-using Sharp9P;
 using Sharp9P.Protocol;
 using Sharp9P.Protocol.Messages;
 
-namespace Sharp9PTest
+namespace Sharp9P.Test
 {
     [TestFixture]
     public class ProtocolTest
@@ -30,7 +29,7 @@ namespace Sharp9PTest
                 Tag = 1237
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -54,7 +53,7 @@ namespace Sharp9PTest
                 Tag = 1235
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -77,7 +76,7 @@ namespace Sharp9PTest
                 Tag = 1251
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -101,7 +100,7 @@ namespace Sharp9PTest
                 Tag = 1245
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -124,7 +123,7 @@ namespace Sharp9PTest
                 Tag = 1238
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -147,7 +146,7 @@ namespace Sharp9PTest
                 Tag = 1239
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -171,7 +170,7 @@ namespace Sharp9PTest
                 Tag = 1243
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -197,7 +196,7 @@ namespace Sharp9PTest
                 Tag = 1247
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -220,7 +219,7 @@ namespace Sharp9PTest
                 Tag = 1251
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -246,7 +245,7 @@ namespace Sharp9PTest
                 Tag = 1253
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -269,7 +268,7 @@ namespace Sharp9PTest
                 Tag = 0
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -293,7 +292,7 @@ namespace Sharp9PTest
                 Tag = 1241
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -316,7 +315,7 @@ namespace Sharp9PTest
                 Tag = 1249
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -339,7 +338,7 @@ namespace Sharp9PTest
                 Tag = 1255
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -362,7 +361,7 @@ namespace Sharp9PTest
                 Tag = 1236
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -385,7 +384,7 @@ namespace Sharp9PTest
                 Tag = 1234
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -408,7 +407,7 @@ namespace Sharp9PTest
                 Tag = 1250
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -431,7 +430,7 @@ namespace Sharp9PTest
                 Tag = 1244
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -456,7 +455,7 @@ namespace Sharp9PTest
                 Tag = 1239
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -479,7 +478,7 @@ namespace Sharp9PTest
                 Tag = 1242
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -502,7 +501,7 @@ namespace Sharp9PTest
                 Tag = 1246
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -525,7 +524,7 @@ namespace Sharp9PTest
                 Tag = 1250
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -548,7 +547,7 @@ namespace Sharp9PTest
                 Tag = 1252
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -571,7 +570,7 @@ namespace Sharp9PTest
                 Tag = 0
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -594,7 +593,7 @@ namespace Sharp9PTest
                 Tag = 1240
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -622,7 +621,7 @@ namespace Sharp9PTest
                 Tag = 1248
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 
@@ -648,7 +647,7 @@ namespace Sharp9PTest
                 Tag = 1254
             };
 
-            var p = new Protocol(stream);
+            var p = new Protocol.Protocol(stream);
             p.Write(message);
             stream.Position = 0;
 

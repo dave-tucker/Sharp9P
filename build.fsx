@@ -40,7 +40,7 @@ Target "SetVersions" (fun _ ->
       Attribute.Guid "12dd4614-0f72-4deb-a9d1-37d825b9a07b"
       Attribute.Company company
       Attribute.Copyright copyright
-      Attribute.InternalsVisibleTo "Sharp9PTest"
+      // Attribute.InternalsVisibleTo "Sharp9PTest"
       Attribute.Version version
       Attribute.FileVersion version
       Attribute.Metadata("githash", commitHash)
