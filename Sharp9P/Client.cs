@@ -10,16 +10,16 @@ namespace Sharp9P
     public class Client
     {
         private readonly Queue _fidQueue;
-        private readonly Protocol.Protocol _protocol;
+        private readonly IProtocol _protocol;
         private readonly Queue _tagQueue;
         private uint _msize;
         private string _version;
 
-        public Client(Stream stream)
+        public Client(IProtocol protocol)
         {
             _msize = Constants.DefaultMsize;
             _version = Constants.DefaultVersion;
-            _protocol = new Protocol.Protocol(stream);
+            _protocol = protocol;
             _tagQueue = new Queue();
             for (ushort i = 1; i < 65535; i++)
             {
@@ -32,6 +32,12 @@ namespace Sharp9P
             }
         }
 
+        public static Client FromStream (Stream stream)
+        {
+            var p = new Protocol.Protocol(stream);
+            return new Client(p);
+        }
+
         public uint AllocateFid(uint parent)
         {
             var fid = (uint) _fidQueue.Dequeue();
@@ -42,7 +48,6 @@ namespace Sharp9P
         public void FreeFid(uint fid)
         {
             Clunk(fid);
-            _fidQueue.Enqueue(fid);
         }
 
         public void Version(uint msize, string version)

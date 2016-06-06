@@ -28,15 +28,19 @@ namespace Example
             // var tcpClient = new TcpClient();
             // tcpClient.Connect("10.0.75.2", 5640);
             // var stream = tcpClient.GetStream();
-                        
+
             Console.WriteLine("Creating new client...\n");
-            _client = new Client(stream);
+            _client = Client.FromStream(stream);
             Console.WriteLine("Checking Version...\n");
             _client.Version(Constants.DefaultMsize, Constants.DefaultVersion);
             Console.WriteLine("Attaching...\n");
-            _client.Attach(Constants.RootFid, Constants.NoFid, "Dave", "/");
-            Mkdir(new[] {"branch", "master", "transactions", "test", "rw", "foo"});
-            Create(new[] {"branch", "master", "transactions", "test", "rw", "foo", "bar"});
+            _client.Attach(Constants.RootFid, Constants.NoFid, "anybody", "/");
+
+            for (var i = 0; i < 200; i++) { 
+                Console.WriteLine($"Writing {i}...");
+                Mkdir(new[] {"branch", "master", "transactions", "test", "rw", "foo"});
+                Create(new[] {"branch", "master", "transactions", "test", "rw", "foo", "{i}"});
+            }
             Commit(new[] {"branch", "master", "transactions", "test", "ctl"});
         }
 
@@ -57,6 +61,7 @@ namespace Example
                 _client.FreeFid(dirFid);
                 _client.Walk(fid, fid, new[] {dir});
             }
+            _client.FreeFid(fid);
         }
 
         private static void Create(string[] path)

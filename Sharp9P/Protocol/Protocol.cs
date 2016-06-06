@@ -5,7 +5,13 @@ using Sharp9P.Protocol.Messages;
 
 namespace Sharp9P.Protocol
 {
-    public class Protocol
+    public interface IProtocol
+    {
+        Message Read();
+        void Write(Message message);
+    }
+
+    public class Protocol : IProtocol
     {
         private readonly int _msize = 8192;
         private readonly Stream _stream;
