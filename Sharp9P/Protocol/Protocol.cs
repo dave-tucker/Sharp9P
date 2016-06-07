@@ -9,11 +9,12 @@ namespace Sharp9P.Protocol
     {
         Message Read();
         void Write(Message message);
+        uint Msize { get; set; }
     }
 
     public class Protocol : IProtocol
     {
-        private readonly int _msize = 8192;
+        public uint Msize { get; set; } = Constants.DefaultMsize;
         private readonly Stream _stream;
 
         public Protocol(Stream stream)
@@ -77,7 +78,7 @@ namespace Sharp9P.Protocol
             // Read length uint
             var length = ReadBytes(Constants.Bit32Sz);
             var pktlen = ReadUInt(length, 0);
-            if (pktlen - Constants.Bit32Sz > _msize)
+            if (pktlen - Constants.Bit32Sz > Msize)
                 throw new Exception("Message too large!");
 
             // Read the remainder of the packet (minus the uint length)

@@ -75,6 +75,7 @@ namespace Sharp9P
                 throw new MsizeNegotiationException(request.Msize, response.Msize);
             }
             _msize = response.Msize;
+            _protocol.Msize = _msize;
             if (response.Version != request.Version)
             {
                 throw new UnsupportedVersionException(response.Version);
