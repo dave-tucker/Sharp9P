@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO.Pipes;
 using System.Linq;
 using System.Security.Principal;
@@ -19,6 +20,8 @@ namespace Example
 
         private static void Main(string[] args)
         {
+            Stopwatch sw1 = new Stopwatch();
+            sw1.Start();
             Console.WriteLine("Connecting to server...\n");
             var stream = new NamedPipeClientStream(".", "datakit",
                 PipeDirection.InOut, PipeOptions.None, TokenImpersonationLevel.None);
@@ -35,11 +38,17 @@ namespace Example
             _client.Version(Constants.DefaultMsize, Constants.DefaultVersion);
             Console.WriteLine("Attaching...\n");
             _client.Attach(Constants.RootFid, Constants.NoFid, "anybody", "/");
+            sw1.Stop();
+            Console.WriteLine($"Connection took ${sw1.Elapsed}");
 
-            for (var i = 0; i < 200; i++) { 
+            Mkdir(new[] { "branch", "master", "transactions", "test", "rw", "foo" });
+            for (var i = 0; i < 200; i++) {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
                 Console.WriteLine($"Writing {i}...");
-                Mkdir(new[] {"branch", "master", "transactions", "test", "rw", "foo"});
                 Create(new[] {"branch", "master", "transactions", "test", "rw", "foo", "{i}"});
+                sw.Stop();
+                Console.WriteLine($"Write took={sw.Elapsed}");
             }
             Commit(new[] {"branch", "master", "transactions", "test", "ctl"});
         }
