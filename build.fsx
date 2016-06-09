@@ -88,6 +88,7 @@ Target "PackageApp" (fun _ ->
       WorkingDir = packagingDir
       Version = version
       AccessKey = accessKey
+      SymbolPackage = NugetSymbolPackage.Nuspec
       Publish = push
       PublishUrl = "https://api.nuget.org/v3/index.json"
       })
