@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Concurrent;
 using System.IO;
+using System.Threading.Tasks;
 using Sharp9P.Exceptions;
 using Sharp9P.Protocol;
 using Sharp9P.Protocol.Messages;
@@ -9,27 +10,37 @@ namespace Sharp9P
 {
     public class Client
     {
-        private readonly Queue _fidQueue;
+        private readonly ConcurrentQueue<uint> _fidQueue;
         private readonly IProtocol _protocol;
-        private readonly Queue _tagQueue;
+        private readonly ConcurrentQueue<ushort> _tagQueue;
         private uint _msize;
         private string _version;
-
+       
         public Client(IProtocol protocol)
         {
             _msize = Constants.DefaultMsize;
             _version = Constants.DefaultVersion;
             _protocol = protocol;
-            _tagQueue = new Queue();
+            _tagQueue = new ConcurrentQueue<ushort>();
             for (ushort i = 1; i < 65535; i++)
             {
                 _tagQueue.Enqueue(i);
             }
-            _fidQueue = new Queue();
-            for (uint i = 2; i < 100; i++)
+            _fidQueue = new ConcurrentQueue<uint>();
+            for (uint i = 2; i < 500; i++)
             {
                 _fidQueue.Enqueue(i);
             }
+         }
+
+        public void Start()
+        {
+            _protocol.Start();
+        }
+
+        public void Stop()
+        {
+            _protocol.Stop();
         }
 
         public static Client FromStream (Stream stream)
@@ -38,24 +49,40 @@ namespace Sharp9P
             return new Client(p);
         }
 
-        public uint AllocateFid(uint parent)
+        public async Task<uint> AllocateFid(uint parent)
         {
-            var fid = (uint) _fidQueue.Dequeue();
-            Walk(parent, fid, new string[0]);
+            uint fid;
+            var ok = _fidQueue.TryDequeue(out fid);
+            if (!ok)
+            {
+                throw new Exception("Unable to dequeue a Fid");
+            }
+            await Walk(parent, fid, new string[0]);
             return fid;
         }
 
-        public void FreeFid(uint fid)
+        private ushort AllocateTag()
         {
-            Clunk(fid);
+            ushort tag;
+            var ok = _tagQueue.TryDequeue(out tag);
+            if (!ok)
+            {
+                throw new Exception("Unable to dequeue a Tag");
+            }
+            return tag;
         }
 
-        public void Version(uint msize, string version)
+        public async Task FreeFid(uint fid)
+        {
+            await Clunk(fid);
+        }
+
+        public async Task Version(uint msize, string version)
         {
             var request = new Tversion(_msize, _version);
-            _protocol.Write(request);
+            _protocol.Send(request);
 
-            var r = _protocol.Read();
+            var r = await _protocol.Receive(Constants.NoTag);
             Rversion response;
             try
             {
@@ -83,16 +110,15 @@ namespace Sharp9P
             _version = response.Version;
         }
 
-        public Qid Attach(uint fid, uint afid, string uname, string aname)
+        public async Task<Qid> Attach(uint fid, uint afid, string uname, string aname)
         {
+            var tag = AllocateTag();
             var request = new Tattach(fid, afid, uname, aname)
             {
-                Tag = (ushort) _tagQueue.Dequeue()
+                Tag = tag
             };
-            _protocol.Write(request);
-            var r = _protocol.Read();
-            if (r.Tag != request.Tag)
-                throw new TagMismatchException(r.Tag, request.Tag);
+            _protocol.Send(request);
+            var r = await _protocol.Receive(tag);
             Rattach response;
             try
             {
@@ -108,16 +134,15 @@ namespace Sharp9P
             return response.Qid;
         }
 
-        public Qid Auth(uint fid, string uname, string aname)
+        public async Task<Qid> Auth(uint fid, string uname, string aname)
         {
+            var tag = AllocateTag();
             var request = new Tauth(fid, uname, aname)
             {
-                Tag = (ushort) _tagQueue.Dequeue()
+                Tag = tag
             };
-            _protocol.Write(request);
-            var r = _protocol.Read();
-            if (r.Tag != request.Tag)
-                throw new TagMismatchException(r.Tag, request.Tag);
+            _protocol.Send(request);
+            var r = await _protocol.Receive(tag);
             Rauth response;
             try
             {
@@ -133,20 +158,19 @@ namespace Sharp9P
             return response.Aqid;
         }
 
-        public Qid[] Walk(uint fid, uint newFid, string[] nwnames)
+        public async Task<Qid[]> Walk(uint fid, uint newFid, string[] nwnames)
         {
+            var tag = AllocateTag();
             if (nwnames.Length > Constants.Maxwelem)
             {
                 throw new Exception("No more thatn 16 elements allowed");
             }
             var request = new Twalk(fid, newFid, (ushort) nwnames.Length, nwnames)
             {
-                Tag = (ushort) _tagQueue.Dequeue()
+                Tag = tag
             };
-            _protocol.Write(request);
-            var r = _protocol.Read();
-            if (r.Tag != request.Tag)
-                throw new TagMismatchException(r.Tag, request.Tag);
+            _protocol.Send(request);
+            var r = await _protocol.Receive(tag);
             Rwalk response;
             try
             {
@@ -162,16 +186,16 @@ namespace Sharp9P
             return response.Wqid;
         }
 
-        public void Clunk(uint fid)
+        public async Task Clunk(uint fid)
         {
+            var tag = AllocateTag();
+            var tcs = new TaskCompletionSource<object>();
             var request = new Tclunk(fid)
             {
-                Tag = (ushort) _tagQueue.Dequeue()
+                Tag = tag
             };
-            _protocol.Write(request);
-            var r = _protocol.Read();
-            if (r.Tag != request.Tag)
-                throw new TagMismatchException(r.Tag, request.Tag);
+            _protocol.Send(request);
+            var r = await _protocol.Receive(tag);
             Rclunk response;
             try
             {
@@ -185,18 +209,18 @@ namespace Sharp9P
             }
             _fidQueue.Enqueue(fid);
             _tagQueue.Enqueue(request.Tag);
+            tcs.SetResult(null);
         }
 
-        public Tuple<Qid, uint> Create(uint fid, string name, uint perm, byte mode)
+        public async Task<Tuple<Qid, uint>> Create(uint fid, string name, uint perm, byte mode)
         {
+            var tag = AllocateTag();
             var request = new Tcreate(fid, name, perm, mode)
             {
-                Tag = (ushort) _tagQueue.Dequeue()
+                Tag = tag
             };
-            _protocol.Write(request);
-            var r = _protocol.Read();
-            if (r.Tag != request.Tag)
-                throw new TagMismatchException(r.Tag, request.Tag);
+            _protocol.Send(request);
+            var r = await _protocol.Receive(tag);
             Rcreate response;
             try
             {
@@ -212,16 +236,15 @@ namespace Sharp9P
             return new Tuple<Qid, uint>(response.Qid, response.Iounit);
         }
 
-        public Tuple<Qid, uint> Open(uint fid, byte mode)
+        public async Task<Tuple<Qid, uint>> Open(uint fid, byte mode)
         {
+            var tag = AllocateTag();
             var request = new Topen(fid, mode)
             {
-                Tag = (ushort) _tagQueue.Dequeue()
+                Tag = tag
             };
-            _protocol.Write(request);
-            var r = _protocol.Read();
-            if (r.Tag != request.Tag)
-                throw new TagMismatchException(r.Tag, request.Tag);
+            _protocol.Send(request);
+            var r = await _protocol.Receive(tag);
             Ropen response;
             try
             {
@@ -237,16 +260,15 @@ namespace Sharp9P
             return new Tuple<Qid, uint>(response.Qid, response.Iounit);
         }
 
-        public Tuple<uint, byte[]> Read(uint fid, ulong offset, uint count)
+        public async Task<Tuple<uint, byte[]>> Read(uint fid, ulong offset, uint count)
         {
+            var tag = AllocateTag();
             var request = new Tread(fid, offset, count)
             {
-                Tag = (ushort) _tagQueue.Dequeue()
+                Tag = tag
             };
-            _protocol.Write(request);
-            var r = _protocol.Read();
-            if (r.Tag != request.Tag)
-                throw new TagMismatchException(r.Tag, request.Tag);
+            _protocol.Send(request);
+            var r = await _protocol.Receive(tag);
             Rread response;
             try
             {
@@ -262,16 +284,15 @@ namespace Sharp9P
             return new Tuple<uint, byte[]>(response.Count, response.Data);
         }
 
-        public uint Write(uint fid, ulong offset, uint count, byte[] data)
+        public async Task<uint> Write(uint fid, ulong offset, uint count, byte[] data)
         {
+            var tag = AllocateTag();
             var request = new Twrite(fid, offset, count, data)
             {
-                Tag = (ushort) _tagQueue.Dequeue()
+                Tag = tag
             };
-            _protocol.Write(request);
-            var r = _protocol.Read();
-            if (r.Tag != request.Tag)
-                throw new TagMismatchException(r.Tag, request.Tag);
+            _protocol.Send(request);
+            var r = await _protocol.Receive(tag);
             Rwrite response;
             try
             {
@@ -287,16 +308,15 @@ namespace Sharp9P
             return response.Count;
         }
 
-        public Stat Stat(uint fid)
+        public async Task<Stat> Stat(uint fid)
         {
+            var tag = AllocateTag();
             var request = new Tstat(fid)
             {
-                Tag = (ushort) _tagQueue.Dequeue()
+                Tag = tag
             };
-            _protocol.Write(request);
-            var r = _protocol.Read();
-            if (r.Tag != request.Tag)
-                throw new TagMismatchException(r.Tag, request.Tag);
+            _protocol.Send(request);
+            var r = await _protocol.Receive(tag);
             Rstat response;
             try
             {
@@ -312,16 +332,15 @@ namespace Sharp9P
             return response.Stat;
         }
 
-        public void Wstat(uint fid, Stat stat)
+        public async Task Wstat(uint fid, Stat stat)
         {
+            var tag = AllocateTag();
             var request = new Twstat(fid, stat)
             {
-                Tag = (ushort) _tagQueue.Dequeue()
+                Tag = tag
             };
-            _protocol.Write(request);
-            var r = _protocol.Read();
-            if (r.Tag != request.Tag)
-                throw new TagMismatchException(r.Tag, request.Tag);
+            _protocol.Send(request);
+            var r = await _protocol.Receive(tag);
             Rwstat response;
             try
             {
@@ -336,16 +355,15 @@ namespace Sharp9P
             _tagQueue.Enqueue(request.Tag);
         }
 
-        public void Flush(ushort tag)
+        public async Task Flush(ushort tag)
         {
+            var requestTag = AllocateTag();
             var request = new Tflush(tag)
             {
-                Tag = (ushort) _tagQueue.Dequeue()
+                Tag = requestTag
             };
-            _protocol.Write(request);
-            var r = _protocol.Read();
-            if (r.Tag != request.Tag)
-                throw new TagMismatchException(r.Tag, request.Tag);
+            _protocol.Send(request);
+            var r = await _protocol.Receive(requestTag);
             Rflush response;
             try
             {

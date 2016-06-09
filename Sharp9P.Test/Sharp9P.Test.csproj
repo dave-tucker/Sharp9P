@@ -54,6 +54,7 @@
     <Compile Include="ProtocolTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ClientTest.cs" />
+    <Compile Include="TestMemoryStream.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />

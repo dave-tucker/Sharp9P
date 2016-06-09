@@ -7,12 +7,12 @@ using System.Runtime.InteropServices;
 [assembly: GuidAttribute("12dd4614-0f72-4deb-a9d1-37d825b9a07b")]
 [assembly: AssemblyCompanyAttribute("Docker")]
 [assembly: AssemblyCopyrightAttribute("Copyright © Docker, Inc. 2016")]
-[assembly: AssemblyVersionAttribute("0.1.1.9999")]
-[assembly: AssemblyFileVersionAttribute("0.1.1.9999")]
-[assembly: AssemblyMetadataAttribute("githash","ccc8a8")]
+[assembly: AssemblyVersionAttribute("0.1.6.9999")]
+[assembly: AssemblyFileVersionAttribute("0.1.6.9999")]
+[assembly: AssemblyMetadataAttribute("githash","7d33d0")]
 namespace System {
     internal static class AssemblyVersionInformation {
-        internal const string Version = "0.1.1.9999";
-        internal const string InformationalVersion = "0.1.1.9999";
+        internal const string Version = "0.1.6.9999";
+        internal const string InformationalVersion = "0.1.6.9999";
     }
 }

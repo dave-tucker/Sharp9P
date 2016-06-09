@@ -1,6 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using Sharp9P.Protocol;
 using Sharp9P.Protocol.Messages;
@@ -10,654 +10,409 @@ namespace Sharp9P.Test
     [TestFixture]
     public class ProtocolTest
     {
+
+        private Protocol.Protocol _protocol;
+        private ushort _tag;
+
+        [OneTimeSetUp]
+        public void SetUpFixture()
+        {
+            var stream = new TestMemoryStream();
+            _protocol = new Protocol.Protocol(stream);
+            _protocol.Start();
+            _tag = 1234;
+        }
+
+        [OneTimeTearDown]
+        public void TearDownFixture()
+        {
+            _protocol.Stop();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            _tag++;
+        }
+
         [Test]
         public void TestReadWriteQid()
         {
-            var qid = new Qid((byte) QidType.QtFile, 1, 0x111L);
+            var qid = new Qid((byte)QidType.QtFile, 1, 0x111L);
             var bytes = qid.ToBytes();
             var qid2 = new Qid(bytes);
             Assert.That(qid, Is.EqualTo(qid2));
         }
 
         [Test]
-        public void TestReadWriteRattach()
+        public async Task TestReadWriteRattach()
         {
-            var stream = new MemoryStream();
-            var qid = new Qid((byte) QidType.QtFile, 1, 0x111L);
+            var qid = new Qid((byte)QidType.QtFile, 1, 0x111L);
             var message = new Rattach(qid)
             {
-                Tag = 1237
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Rattach) p.Read();
+            _protocol.Send(message);
+            var message2 = (Rattach)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteRauth()
+        public async Task TestReadWriteRauth()
         {
-            var stream = new MemoryStream();
-            var qid = new Qid((byte) QidType.QtFile, 1, 0x111L);
+            var qid = new Qid((byte)QidType.QtFile, 1, 0x111L);
             var message = new Rauth(qid)
             {
-                Tag = 1235
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Rauth) p.Read();
+            _protocol.Send(message);
+            var message2 = (Rauth)await _protocol.Receive(_tag);
             Assert.That(qid, Is.EqualTo(message2.Aqid));
         }
 
         [Test]
-        public void TestReadWriteRclunk()
+        public async Task TestReadWriteRclunk()
         {
-            var stream = new MemoryStream();
             var message = new Rclunk
             {
-                Tag = 1251
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Rclunk) p.Read();
+            _protocol.Send(message);
+            var message2 = (Rclunk)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteRcreate()
+        public async Task TestReadWriteRcreate()
         {
-            var stream = new MemoryStream();
-            var qid = new Qid((byte) QidType.QtFile, 1, 0x111L);
+            var qid = new Qid((byte)QidType.QtFile, 1, 0x111L);
             var message = new Rcreate(qid, 1)
             {
-                Tag = 1245
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Rcreate) p.Read();
+            _protocol.Send(message);
+            var message2 = (Rcreate)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteRerror()
+        public async Task TestReadWriteRerror()
         {
-            var stream = new MemoryStream();
             var message = new Rerror("ETEST")
             {
-                Tag = 1238
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Rerror) p.Read();
+            _protocol.Send(message);
+            var message2 = (Rerror)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteRflush()
+        public async Task TestReadWriteRflush()
         {
-            var stream = new MemoryStream();
             var message = new Rflush
             {
-                Tag = 1239
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Rflush) p.Read();
+            _protocol.Send(message);
+            var message2 = (Rflush)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteRopen()
+        public async Task TestReadWriteRopen()
         {
-            var stream = new MemoryStream();
-            var qid = new Qid((byte) QidType.QtFile, 1, 0x111L);
+            var qid = new Qid((byte)QidType.QtFile, 1, 0x111L);
             var message = new Ropen(qid, 1)
             {
-                Tag = 1243
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Ropen) p.Read();
+            _protocol.Send(message);
+            var message2 = (Ropen)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteRread()
+        public async Task TestReadWriteRread()
         {
-            var stream = new MemoryStream();
             var utf8 = new UTF8Encoding();
 
-            var message = new Rread((uint) utf8.GetByteCount("test"),
+            var message = new Rread((uint)utf8.GetByteCount("test"),
                 utf8.GetBytes("test"))
             {
-                Tag = 1247
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Rread) p.Read();
+            _protocol.Send(message);
+            var message2 = (Rread)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteRremove()
+        public async Task TestReadWriteRremove()
         {
-            var stream = new MemoryStream();
             var message = new Rremove
             {
-                Tag = 1251
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Rremove) p.Read();
+            _protocol.Send(message);
+            var message2 = (Rremove)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteRstat()
+        public async Task TestReadWriteRstat()
         {
-            var stream = new MemoryStream();
-            var qid = new Qid((byte) QidType.QtFile, 1, 0x111L);
+            var qid = new Qid((byte)QidType.QtFile, 1, 0x111L);
             var stat = new Stat(
                 1, 2, qid, 4, 5, 6, 65535L, "foo", "root", "root", "root");
             var message = new Rstat(stat)
             {
-                Tag = 1253
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Rstat) p.Read();
+            _protocol.Send(message);
+            var message2 = (Rstat)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteRversion()
+        public async Task TestReadWriteRversion()
         {
-            var stream = new MemoryStream();
             var message = new Rversion(16384, "9P2000")
             {
-                Tag = 0
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Rversion) p.Read();
+            _protocol.Send(message);
+            var message2 = (Rversion)await _protocol.Receive(_tag);
             Assert.That(message2, Is.EqualTo(message));
         }
 
         [Test]
-        public void TestReadWriteRwalk()
+        public async Task TestReadWriteRwalk()
         {
-            var stream = new MemoryStream();
-            var qid = new Qid((byte) QidType.QtFile, 1, 0x111L);
-            var message = new Rwalk(1, new[] {qid})
+            var qid = new Qid((byte)QidType.QtFile, 1, 0x111L);
+            var message = new Rwalk(1, new[] { qid })
             {
-                Tag = 1241
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Rwalk) p.Read();
+            _protocol.Send(message);
+            var message2 = (Rwalk)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteRwrite()
+        public async Task TestReadWriteRwrite()
         {
-            var stream = new MemoryStream();
             var message = new Rwrite(8192)
             {
-                Tag = 1249
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Rwrite) p.Read();
+            _protocol.Send(message);
+            var message2 = (Rwrite)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteRwstat()
+        public async Task TestReadWriteRwstat()
         {
-            var stream = new MemoryStream();
             var message = new Rwstat
             {
-                Tag = 1255
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Rwstat) p.Read();
+            _protocol.Send(message);
+            var message2 = (Rwstat)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteTattach()
+        public async Task TestReadWriteTattach()
         {
-            var stream = new MemoryStream();
             var message = new Tattach(1, 2, "uname", "aname")
             {
-                Tag = 1236
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Tattach) p.Read();
+            _protocol.Send(message);
+            var message2 = (Tattach)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteTauth()
+        public async Task TestReadWriteTauth()
         {
-            var stream = new MemoryStream();
             var message = new Tauth(Constants.NoFid, "user", "tree")
             {
-                Tag = 1234
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Tauth) p.Read();
+            _protocol.Send(message);
+            var message2 = (Tauth)await _protocol.Receive(_tag);
             Assert.That(message2, Is.EqualTo(message));
         }
 
         [Test]
-        public void TestReadWriteTclunk()
+        public async Task TestReadWriteTclunk()
         {
-            var stream = new MemoryStream();
             var message = new Tclunk(1)
             {
-                Tag = 1250
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Tclunk) p.Read();
+            _protocol.Send(message);
+            var message2 = (Tclunk)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteTcreate()
+        public async Task TestReadWriteTcreate()
         {
-            var stream = new MemoryStream();
             var message = new Tcreate(1, "test", 1, 1)
             {
-                Tag = 1244
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Tcreate) p.Read();
+            _protocol.Send(message);
+            var message2 = (Tcreate)await _protocol.Receive(_tag);
             Console.WriteLine(message.ToString());
             Console.WriteLine(message2.ToString());
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteTflush()
+        public async Task TestReadWriteTflush()
         {
-            var stream = new MemoryStream();
             var message = new Tflush(1234)
             {
-                Tag = 1239
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Tflush) p.Read();
+            _protocol.Send(message);
+            var message2 = (Tflush)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteTopen()
+        public async Task TestReadWriteTopen()
         {
-            var stream = new MemoryStream();
             var message = new Topen(1, 1)
             {
-                Tag = 1242
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Topen) p.Read();
+            _protocol.Send(message);
+            var message2 = (Topen)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteTread()
+        public async Task TestReadWriteTread()
         {
-            var stream = new MemoryStream();
             var message = new Tread(1, 65535L, 1)
             {
-                Tag = 1246
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Tread) p.Read();
+            _protocol.Send(message);
+            var message2 = (Tread)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteTremove()
+        public async Task TestReadWriteTremove()
         {
-            var stream = new MemoryStream();
             var message = new Tremove(1)
             {
-                Tag = 1250
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Tremove) p.Read();
+            _protocol.Send(message);
+            var message2 = (Tremove)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteTstat()
+        public async Task TestReadWriteTstat()
         {
-            var stream = new MemoryStream();
             var message = new Tstat(1)
             {
-                Tag = 1252
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Tstat) p.Read();
+            _protocol.Send(message);
+            var message2 = (Tstat)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteTversion()
+        public async Task TestReadWriteTversion()
         {
-            var stream = new MemoryStream();
             var message = new Tversion(16384, "9P2000")
             {
-                Tag = 0
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Tversion) p.Read();
+            _protocol.Send(message);
+            var message2 = (Tversion)await _protocol.Receive(_tag);
             Assert.That(message2, Is.EqualTo(message));
         }
 
         [Test]
-        public void TestReadWriteTwalk()
+        public async Task TestReadWriteTwalk()
         {
-            var stream = new MemoryStream();
-            var message = new Twalk(3, 4, 2, new[] {"hello", "world"})
+            var message = new Twalk(3, 4, 2, new[] { "hello", "world" })
             {
-                Tag = 1240
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Twalk) p.Read();
+            _protocol.Send(message);
+            var message2 = (Twalk)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteTwrite()
+        public async Task TestReadWriteTwrite()
         {
-            var stream = new MemoryStream();
             var utf8 = new UTF8Encoding();
 
             var message = new Twrite(
                 1, 65535L,
-                (uint) utf8.GetByteCount("test"),
+                (uint)utf8.GetByteCount("test"),
                 utf8.GetBytes("test"))
             {
-                Tag = 1248
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Twrite) p.Read();
+            _protocol.Send(message);
+            var message2 = (Twrite)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
 
         [Test]
-        public void TestReadWriteTwstat()
+        public async Task TestReadWriteTwstat()
         {
-            var stream = new MemoryStream();
-            var qid = new Qid((byte) QidType.QtFile, 1, 0x111L);
+            var qid = new Qid((byte)QidType.QtFile, 1, 0x111L);
             var stat = new Stat(
                 1, 2, qid, 4, 5, 6, 65535L, "foo", "root", "root", "root");
             var message = new Twstat(1, stat)
             {
-                Tag = 1254
+                Tag = _tag
             };
 
-            var p = new Protocol.Protocol(stream);
-            p.Write(message);
-            stream.Position = 0;
-
-            var data = new byte[message.Length];
-            var length = stream.Read(data, 0, (int) message.Length);
-
-            Assert.That(length, Is.EqualTo(message.Length));
-
-            stream.Position = 0;
-            var message2 = (Twstat) p.Read();
+            _protocol.Send(message);
+            var message2 = (Twstat)await _protocol.Receive(_tag);
             Assert.That(message, Is.EqualTo(message2));
         }
     }

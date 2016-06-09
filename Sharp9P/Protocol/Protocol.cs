@@ -1,37 +1,115 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Sharp9P.Protocol.Messages;
 
 namespace Sharp9P.Protocol
 {
     public interface IProtocol
     {
-        Message Read();
-        void Write(Message message);
         uint Msize { get; set; }
+        void Send(Message message);
+        Task<Message> Receive(ushort tag);
+        void Start();
+        void Stop();
     }
 
     public class Protocol : IProtocol
     {
-        public uint Msize { get; set; } = Constants.DefaultMsize;
+        private readonly ConcurrentDictionary<uint, Task> _rxCallbacks;
+        private readonly ConcurrentDictionary<uint, Message> _rxQueue;
         private readonly Stream _stream;
+        private readonly ConcurrentQueue<Message> _txQueue;
+        private readonly CancellationTokenSource _tokenSource;
 
         public Protocol(Stream stream)
         {
             _stream = stream;
+            _rxCallbacks = new ConcurrentDictionary<uint, Task>();
+            _rxQueue = new ConcurrentDictionary<uint, Message>();
+            _txQueue = new ConcurrentQueue<Message>();
+            _tokenSource = new CancellationTokenSource();
         }
 
-        private byte[] ReadBytes(int n)
+        public uint Msize { get; set; } = Constants.DefaultMsize;
+
+        public void Send(Message message)
+        {
+            _txQueue.Enqueue(message);
+        }
+
+        public async Task<Message> Receive(ushort tag)
+        {
+            var t = new Task<Message>(delegate
+            {
+                Message result;
+                var ok = _rxQueue.TryRemove(tag, out result);
+                return result;
+            });
+            _rxCallbacks.TryAdd(tag, t);
+            return await t;
+        }
+
+        public void Start()
+        {
+            Task.Factory.StartNew(UpdateLoop, _tokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        }
+    
+        public void Stop()
+        {
+            _tokenSource.Cancel();
+        }
+
+        public async void UpdateLoop()
+        {
+            while (!_tokenSource.IsCancellationRequested)
+            {
+
+                if (_txQueue.Count <= 0) continue;
+                Message outboundMsg;
+                _txQueue.TryDequeue(out outboundMsg);
+                Write(outboundMsg);
+
+                await Read();
+
+                // Process Callbacks
+                foreach (var c in _rxCallbacks)
+                {
+                    if (!_rxQueue.ContainsKey(c.Key)) continue;
+                    Task t;
+                    var ok = _rxCallbacks.TryRemove(c.Key, out t);
+                    if (!ok)
+                    {
+                        // ignore
+                    }
+                    t.Start();
+                }
+            }
+        }
+        
+        private async Task<byte[]> ReadBytes(int n)
         {
             var data = new byte[n];
-            var r = _stream.Read(data, 0, n);
+            var r = await _stream.ReadAsync(data, 0, n);
             if (r < n)
             {
                 throw new Exception("Failed to read enough bytes");
             }
             return data;
         }
+
+        /*
+        private void Read()
+        {
+            var data = new byte[Constants.Bit32Sz];
+            var callBack = new AsyncCallback(MessageCallback);
+            _reading = true;
+            _stream.BeginRead(data, 0, Constants.Bit32Sz, callBack, data);
+        }
+        */
 
         internal static uint ReadUInt(byte[] data, int offset)
         {
@@ -73,27 +151,27 @@ namespace Sharp9P.Protocol
             return new Stat(b);
         }
 
-        private byte[] ReadMessage()
+        private async Task Read()
         {
+            var length = await ReadBytes(Constants.Bit32Sz);
             // Read length uint
-            var length = ReadBytes(Constants.Bit32Sz);
             var pktlen = ReadUInt(length, 0);
             if (pktlen - Constants.Bit32Sz > Msize)
                 throw new Exception("Message too large!");
 
             // Read the remainder of the packet (minus the uint length)
-            var data = ReadBytes((int) pktlen - Constants.Bit32Sz);
+            var data = await ReadBytes((int) pktlen - Constants.Bit32Sz);
 
             var pkt = new byte[pktlen];
             length.CopyTo(pkt, 0);
             data.CopyTo(pkt, Constants.Bit32Sz);
-            return pkt;
-        }
+            var message = ProcessMessage(pkt);
+            _rxQueue.TryAdd(message.Tag, message);
+       }
 
-        public Message Read()
+        public Message ProcessMessage(byte[] bytes)
         {
             Message message;
-            var bytes = ReadMessage();
             var offset = Constants.Bit32Sz;
             var type = bytes[offset];
             switch (type)
@@ -238,9 +316,16 @@ namespace Sharp9P.Protocol
             return (uint) (Constants.Bit16Sz + utf8.GetByteCount(var));
         }
 
-        public void Write(Message message)
+        private void Write(Message message)
         {
             var bytes = message.ToBytes();
+            /*
+            var c = new AsyncCallback(delegate
+            {
+                _stream.FlushAsync();
+            });
+            _stream.BeginWrite(bytes, 0, bytes.Length, c, null);
+            */
             _stream.Write(bytes, 0, bytes.Length);
             _stream.Flush();
         }
