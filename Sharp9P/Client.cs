@@ -91,6 +91,8 @@ namespace Sharp9P
             };
             _protocol.Write(request);
             var r = _protocol.Read();
+            if (r.Tag != request.Tag)
+                throw new TagMismatchException(r.Tag, request.Tag);
             Rattach response;
             try
             {
@@ -102,8 +104,6 @@ namespace Sharp9P
                 var err = (Rerror) r;
                 throw new ServerErrorException(err.Ename);
             }
-            if (response.Tag != request.Tag)
-                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return response.Qid;
         }
@@ -116,6 +116,8 @@ namespace Sharp9P
             };
             _protocol.Write(request);
             var r = _protocol.Read();
+            if (r.Tag != request.Tag)
+                throw new TagMismatchException(r.Tag, request.Tag);
             Rauth response;
             try
             {
@@ -127,8 +129,6 @@ namespace Sharp9P
                 var err = (Rerror) r;
                 throw new ServerErrorException(err.Ename);
             }
-            if (response.Tag != request.Tag)
-                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return response.Aqid;
         }
@@ -145,6 +145,8 @@ namespace Sharp9P
             };
             _protocol.Write(request);
             var r = _protocol.Read();
+            if (r.Tag != request.Tag)
+                throw new TagMismatchException(r.Tag, request.Tag);
             Rwalk response;
             try
             {
@@ -156,8 +158,6 @@ namespace Sharp9P
                 var err = (Rerror) r;
                 throw new ServerErrorException(err.Ename);
             }
-            if (response.Tag != request.Tag)
-                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return response.Wqid;
         }
@@ -170,6 +170,8 @@ namespace Sharp9P
             };
             _protocol.Write(request);
             var r = _protocol.Read();
+            if (r.Tag != request.Tag)
+                throw new TagMismatchException(r.Tag, request.Tag);
             Rclunk response;
             try
             {
@@ -181,8 +183,6 @@ namespace Sharp9P
                 var err = (Rerror) r;
                 throw new ServerErrorException(err.Ename);
             }
-            if (response.Tag != request.Tag)
-                throw new TagMismatchException(response.Tag, request.Tag);
             _fidQueue.Enqueue(fid);
             _tagQueue.Enqueue(request.Tag);
         }
@@ -195,6 +195,8 @@ namespace Sharp9P
             };
             _protocol.Write(request);
             var r = _protocol.Read();
+            if (r.Tag != request.Tag)
+                throw new TagMismatchException(r.Tag, request.Tag);
             Rcreate response;
             try
             {
@@ -206,8 +208,6 @@ namespace Sharp9P
                 var err = (Rerror) r;
                 throw new ServerErrorException(err.Ename);
             }
-            if (response.Tag != request.Tag)
-                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return new Tuple<Qid, uint>(response.Qid, response.Iounit);
         }
@@ -220,6 +220,8 @@ namespace Sharp9P
             };
             _protocol.Write(request);
             var r = _protocol.Read();
+            if (r.Tag != request.Tag)
+                throw new TagMismatchException(r.Tag, request.Tag);
             Ropen response;
             try
             {
@@ -231,8 +233,6 @@ namespace Sharp9P
                 var err = (Rerror) r;
                 throw new ServerErrorException(err.Ename);
             }
-            if (response.Tag != request.Tag)
-                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return new Tuple<Qid, uint>(response.Qid, response.Iounit);
         }
@@ -245,6 +245,8 @@ namespace Sharp9P
             };
             _protocol.Write(request);
             var r = _protocol.Read();
+            if (r.Tag != request.Tag)
+                throw new TagMismatchException(r.Tag, request.Tag);
             Rread response;
             try
             {
@@ -256,8 +258,6 @@ namespace Sharp9P
                 var err = (Rerror) r;
                 throw new ServerErrorException(err.Ename);
             }
-            if (response.Tag != request.Tag)
-                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return new Tuple<uint, byte[]>(response.Count, response.Data);
         }
@@ -270,6 +270,8 @@ namespace Sharp9P
             };
             _protocol.Write(request);
             var r = _protocol.Read();
+            if (r.Tag != request.Tag)
+                throw new TagMismatchException(r.Tag, request.Tag);
             Rwrite response;
             try
             {
@@ -281,8 +283,6 @@ namespace Sharp9P
                 var err = (Rerror) r;
                 throw new ServerErrorException(err.Ename);
             }
-            if (response.Tag != request.Tag)
-                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return response.Count;
         }
@@ -295,6 +295,8 @@ namespace Sharp9P
             };
             _protocol.Write(request);
             var r = _protocol.Read();
+            if (r.Tag != request.Tag)
+                throw new TagMismatchException(r.Tag, request.Tag);
             Rstat response;
             try
             {
@@ -306,8 +308,6 @@ namespace Sharp9P
                 var err = (Rerror) r;
                 throw new ServerErrorException(err.Ename);
             }
-            if (response.Tag != request.Tag)
-                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             return response.Stat;
         }
@@ -320,6 +320,8 @@ namespace Sharp9P
             };
             _protocol.Write(request);
             var r = _protocol.Read();
+            if (r.Tag != request.Tag)
+                throw new TagMismatchException(r.Tag, request.Tag);
             Rwstat response;
             try
             {
@@ -331,8 +333,6 @@ namespace Sharp9P
                 var err = (Rerror) r;
                 throw new ServerErrorException(err.Ename);
             }
-            if (response.Tag != request.Tag)
-                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
         }
 
@@ -344,6 +344,8 @@ namespace Sharp9P
             };
             _protocol.Write(request);
             var r = _protocol.Read();
+            if (r.Tag != request.Tag)
+                throw new TagMismatchException(r.Tag, request.Tag);
             Rflush response;
             try
             {
@@ -355,8 +357,6 @@ namespace Sharp9P
                 var err = (Rerror) r;
                 throw new ServerErrorException(err.Ename);
             }
-            if (response.Tag != request.Tag)
-                throw new TagMismatchException(response.Tag, request.Tag);
             _tagQueue.Enqueue(request.Tag);
             _tagQueue.Enqueue(tag);
         }
