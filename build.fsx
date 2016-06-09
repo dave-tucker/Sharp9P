@@ -20,7 +20,7 @@ let description = "A 9P Client/Server Library written in C#"
 let summary = description
 let company = "Docker"
 let copyright = "Copyright © Docker, Inc. 2016"
-let versionBase = "0.1.3"
+let versionBase = "0.1.4"
 let buildNumber = environVarOrDefault "APPVEYOR_BUILD_NUMBER" "9999"
 let version = sprintf "%s.%s" versionBase buildNumber
 let commitHash = Information.getCurrentHash()
@@ -40,7 +40,6 @@ Target "SetVersions" (fun _ ->
       Attribute.Guid "12dd4614-0f72-4deb-a9d1-37d825b9a07b"
       Attribute.Company company
       Attribute.Copyright copyright
-      // Attribute.InternalsVisibleTo "Sharp9PTest"
       Attribute.Version version
       Attribute.FileVersion version
       Attribute.Metadata("githash", commitHash)
