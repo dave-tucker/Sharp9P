@@ -11,6 +11,7 @@ open Fake.Git
 let buildDir = "./build/"
 let testDir  = "./test/"
 let packagingDir = "./packaging"
+let sourceDir = "./Sharp9P"
 let testDlls = !! (testDir + "/*Test.dll")
 
 // Packaging info
@@ -73,12 +74,16 @@ Target "PackageApp" (fun _ ->
   CopyFiles net45Dir [ (buildDir @@ "Sharp9P.dll")
                        (buildDir @@ "Sharp9P.pdb")
   ]
+  let srcDir = packagingDir @@ "src"
+  let srcFiles (path : string) = path.Contains ".cs" && not <| path.Contains "obj"
+  CopyDir ( srcDir @@ "Sharp9P" ) sourceDir srcFiles
   CopyFile packagingDir "LICENSE"
   NuGet (fun p -> 
     {p with
       Files = [
               (buildDir + "*.dll", None, None)
               (buildDir + "*.pdb",None, None)
+              (srcDir + "*.cs", None, None)
       ]
       Authors = authors
       Project = title
